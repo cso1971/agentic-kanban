@@ -1,0 +1,21 @@
+{
+	"private": true,
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"typecheck": "turbo run typecheck",
+		"generate": "turbo run generate",
+		"test": "turbo run test",
+		"example:prompt1": "pnpm run -F @agents/cli -p ../../prompts/examples/docs.md -w ../../examples/calculator"
+	},
+	"packageManager": "pnpm@10.32.1",
+	"devDependencies": {
+		"turbo": "^2"
+	},
+	"dependencies": {
+		"@logtape/logtape": "^2.0.4"
+	}
+}
