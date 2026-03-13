@@ -14,10 +14,11 @@
 		},
 		"build": {
 			"dependsOn": ["^build"],
+			"inputs": ["src"],
 			"outputs": ["dist/**"]
 		},
 		"typecheck": {
-			"dependsOn": ["^build"]
+			"inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json"]
 		},
 		"test": {}
 	}

@@ -1,22 +1,27 @@
 {
-  "name": "@agents/server",
-  "version": "0.1.0",
-  "type": "module",
-  "main": "src/server.ts",
-  "scripts": {
-    "dev": "bun run --watch src/server.ts",
-    "start": "bun run src/server.ts",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@agents/core": "workspace:*",
-    "@hono/swagger-ui": "^0.6.1",
-    "@hono/zod-openapi": "^1.2.2",
-    "hono": "^4.12.7",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "bun-types": "latest",
-    "typescript": "^5"
-  }
+	"name": "@agentic-kanban/server",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "src/server.ts",
+	"scripts": {
+		"dev": "bun run --watch --cwd ../../ packages/server/src/server.ts",
+		"start": "bun run --cwd ../../ packages/server/src/server.ts",
+		"test": "bun test --pass-with-no-tests",
+		"typecheck": "tsgo --noEmit"
+	},
+	"dependencies": {
+		"@agentic-kanban/core": "workspace:*",
+		"@agentic-kanban/queue": "workspace:*",
+		"@bull-board/api": "catalog:",
+		"@bull-board/hono": "catalog:",
+		"@hono/swagger-ui": "catalog:",
+		"@hono/zod-openapi": "catalog:",
+		"hono": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@typescript/native-preview": "catalog:",
+		"bun-types": "catalog:",
+		"gitlab-event-types": "^3.0.1"
+	}
 }

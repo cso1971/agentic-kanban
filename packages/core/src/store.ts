@@ -1,7 +1,8 @@
-import { mkdir, readdir, readFile, writeFile } from "fs/promises";
-import { join } from "path";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import type { ParsedMessage } from "./parse-message";
 
-export interface Invocation {
+export interface AgentSession {
 	id: string;
 	status: "running" | "completed" | "failed";
 	prompt: string;
@@ -14,58 +15,145 @@ export interface Invocation {
 	totalCostUsd?: number;
 	numTurns?: number;
 	model?: string;
+	/** Associated queue job ID for correlation */
+	jobId?: string;
 }
 
-export interface InvocationMessage {
+export interface AgentSessionMessage {
 	timestamp: string;
 	type: string;
-	text?: string;
+	message?: ParsedMessage;
 	raw: unknown;
 }
 
-const DEFAULT_STORE_DIR = ".agent-invocations";
+const DEFAULT_STORE_DIR = ".agent-sessions";
 
 function getStoreDir(): string {
 	return process.env.AGENT_STORE_DIR ?? join(process.cwd(), DEFAULT_STORE_DIR);
 }
 
-function invocationDir(id: string): string {
+function agentSessionDir(id: string): string {
 	return join(getStoreDir(), id);
 }
 
-export async function createInvocation(
+export async function createAgentSession(
 	id: string,
 	prompt: string,
 	cwd: string,
-): Promise<Invocation> {
-	const inv: Invocation = {
+	jobId?: string,
+): Promise<AgentSession> {
+	const session: AgentSession = {
 		id,
 		status: "running",
 		prompt,
 		cwd,
 		startedAt: new Date().toISOString(),
+		jobId,
 	};
-	const dir = invocationDir(id);
+
+	const dir = agentSessionDir(id);
 	await mkdir(dir, { recursive: true });
-	await writeFile(join(dir, "invocation.json"), JSON.stringify(inv, null, 2));
+	await writeFile(join(dir, "session.json"), JSON.stringify(session, null, 2));
 	await writeFile(join(dir, "messages.jsonl"), "");
-	return inv;
+
+	return session;
 }
 
 export async function appendMessage(
 	id: string,
-	message: InvocationMessage,
+	message: AgentSessionMessage,
 ): Promise<void> {
-	const filePath = join(invocationDir(id), "messages.jsonl");
-	await writeFile(filePath, JSON.stringify(message) + "\n", { flag: "a" });
+	const filePath = join(agentSessionDir(id), "messages.jsonl");
+
+	await writeFile(filePath, `${JSON.stringify(message)}\n`, { flag: "a" });
 }
 
-export async function completeInvocation(
+async function getAgentSessionWorkingDirectory(id: string): Promise<string> {
+	const dir = join(agentSessionDir(id), "working-directory");
+
+	await mkdir(dir, { recursive: true });
+
+	return dir;
+}
+
+async function getAgentSessionArtifacts(id: string): Promise<string> {
+	const dir = join(agentSessionDir(id), "artifacts");
+
+	await mkdir(dir, { recursive: true });
+
+	return dir;
+}
+
+export interface ArtifactFile {
+	name: string;
+	size: number;
+	modifiedAt: string;
+}
+
+async function listAgentSessionArtifacts(id: string): Promise<ArtifactFile[]> {
+	const baseDir = await getAgentSessionArtifacts(id);
+
+	async function walkDir(dir: string, prefix: string): Promise<ArtifactFile[]> {
+		const entries = await readdir(dir, { withFileTypes: true });
+		const files: ArtifactFile[] = [];
+
+		for (const entry of entries) {
+			const relativeName = prefix ? `${prefix}/${entry.name}` : entry.name;
+			const fullPath = join(dir, entry.name);
+
+			if (entry.isFile()) {
+				const fileStat = await stat(fullPath);
+				files.push({
+					name: relativeName,
+					size: fileStat.size,
+					modifiedAt: fileStat.mtime.toISOString(),
+				});
+			} else if (entry.isDirectory()) {
+				const nested = await walkDir(fullPath, relativeName);
+				files.push(...nested);
+			}
+		}
+
+		return files;
+	}
+
+	try {
+		const files = await walkDir(baseDir, "");
+		return files.sort(
+			(a, b) =>
+				new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
+		);
+	} catch {
+		return [];
+	}
+}
+
+async function getAgentSessionArtifactContent(
 	id: string,
-	update: Partial<Invocation>,
+	filePath: string,
+): Promise<string | null> {
+	// Prevent path traversal
+	if (filePath.includes("\\") || filePath.includes("..")) {
+		return null;
+	}
+	const baseDir = join(agentSessionDir(id), "artifacts");
+	const resolved = resolve(baseDir, filePath);
+	if (!resolved.startsWith(baseDir)) {
+		return null;
+	}
+	try {
+		return await readFile(resolved, "utf-8");
+	} catch {
+		return null;
+	}
+}
+
+export async function completeAgentSession(
+	id: string,
+	update: Partial<AgentSession>,
 ): Promise<void> {
-	const filePath = join(invocationDir(id), "invocation.json");
-	const existing: Invocation = JSON.parse(await readFile(filePath, "utf-8"));
+	const filePath = join(agentSessionDir(id), "session.json");
+	const existing: AgentSession = JSON.parse(await readFile(filePath, "utf-8"));
 	const updated = {
 		...existing,
 		...update,
@@ -74,7 +162,7 @@ export async function completeInvocation(
 	await writeFile(filePath, JSON.stringify(updated, null, 2));
 }
 
-export async function listInvocations(): Promise<Invocation[]> {
+export async function listAgentSessions(): Promise<AgentSession[]> {
 	const storeDir = getStoreDir();
 	let entries: string[];
 	try {
@@ -83,28 +171,30 @@ export async function listInvocations(): Promise<Invocation[]> {
 		return [];
 	}
 
-	const invocations: Invocation[] = [];
+	const sessions: AgentSession[] = [];
 	for (const entry of entries) {
 		try {
 			const data = await readFile(
-				join(storeDir, entry, "invocation.json"),
+				join(storeDir, entry, "session.json"),
 				"utf-8",
 			);
-			invocations.push(JSON.parse(data));
+			sessions.push(JSON.parse(data));
 		} catch {
 			// skip invalid entries
 		}
 	}
 
-	return invocations.sort(
+	return sessions.sort(
 		(a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
 	);
 }
 
-export async function getInvocation(id: string): Promise<Invocation | null> {
+export async function getAgentSession(
+	id: string,
+): Promise<AgentSession | null> {
 	try {
 		const data = await readFile(
-			join(invocationDir(id), "invocation.json"),
+			join(agentSessionDir(id), "session.json"),
 			"utf-8",
 		);
 		return JSON.parse(data);
@@ -113,12 +203,12 @@ export async function getInvocation(id: string): Promise<Invocation | null> {
 	}
 }
 
-export async function getInvocationMessages(
+export async function getAgentSessionMessages(
 	id: string,
-): Promise<InvocationMessage[]> {
+): Promise<AgentSessionMessage[]> {
 	try {
 		const data = await readFile(
-			join(invocationDir(id), "messages.jsonl"),
+			join(agentSessionDir(id), "messages.jsonl"),
 			"utf-8",
 		);
 		return data
@@ -129,3 +219,13 @@ export async function getInvocationMessages(
 		return [];
 	}
 }
+
+export const store = {
+	get: getAgentSession,
+	getMessages: getAgentSessionMessages,
+	list: listAgentSessions,
+	workingDirectory: getAgentSessionWorkingDirectory,
+	artifactsDirectory: getAgentSessionArtifacts,
+	listArtifacts: listAgentSessionArtifacts,
+	getArtifactContent: getAgentSessionArtifactContent,
+};

@@ -1,0 +1,76 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"files": {
+		"includes": ["**/*.{ts,tsx,mts,js,jsx,mjs,json,jsonc,html,css}", "!.claude"]
+	},
+	"linter": {
+		"enabled": true,
+		"domains": {
+			"test": "recommended",
+			"project": "recommended",
+			"react": "recommended"
+		},
+		"rules": {
+			"recommended": true,
+			"style": {
+				"noNonNullAssertion": "error"
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"level": "error",
+					"fix": "safe",
+					"options": {
+						"attributes": ["className", "class"],
+						"functions": ["cn"]
+					}
+				}
+			},
+			"correctness": {
+				"noUnusedImports": {
+					"level": "warn",
+					"fix": "safe"
+				},
+				"useHookAtTopLevel": "error"
+			},
+			"suspicious": {
+				"noConsole": {
+					"fix": "unsafe",
+					"level": "warn",
+					"options": {
+						"allow": ["assert", "error", "info", "warn", "debug"]
+					}
+				}
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"vcs": {
+		"clientKind": "git",
+		"enabled": true,
+		"useIgnoreFile": true
+	},
+	"assist": {
+		"actions": {
+			"recommended": true,
+			"source": {
+				"useSortedAttributes": "on",
+				"useSortedProperties": "on"
+			}
+		},
+		"enabled": true
+	},
+	"html": {
+		"formatter": {
+			"enabled": true,
+			"indentScriptAndStyle": true
+		},
+		"experimentalFullSupportEnabled": true
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	}
+}

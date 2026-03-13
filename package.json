@@ -1,21 +1,30 @@
 {
 	"private": true,
-	"workspaces": [
-		"packages/*"
-	],
 	"scripts": {
-		"dev": "turbo run dev",
+		"biome:ci": "biome ci . --error-on-warnings",
+		"biome:fix": "biome check . --write --error-on-warnings",
 		"build": "turbo run build",
-		"typecheck": "turbo run typecheck",
+		"cli": "pnpm run -F @agentic-kanban/cli cli",
+		"dev": "turbo run dev",
+		"docker:down": "docker compose --profile app down",
+		"docker:down:force": "docker compose --profile app down -v --remove-orphans",
+		"docker:infra": "docker compose up --build -d",
+		"docker:up": "docker compose --profile app up --build -d",
+		"example:setup": "pnpm run cli gitlab config -g 'cool' -p 'calculator' -c ./examples/calculator/config -r ./examples/calculator/repository -w http://host.docker.internal:4300/webhook/gitlab --force",
+		"example:trigger:docs": "pnpm run cli run -p ./examples/calculator/config/triggers/docs.md -w ./examples/calculator/repository",
 		"generate": "turbo run generate",
+		"postinstall": "lefthook install",
 		"test": "turbo run test",
-		"example:prompt1": "pnpm run -F @agents/cli -p ../../prompts/examples/docs.md -w ../../examples/calculator"
-	},
-	"packageManager": "pnpm@10.32.1",
-	"devDependencies": {
-		"turbo": "^2"
+		"typecheck": "turbo run typecheck"
 	},
 	"dependencies": {
-		"@logtape/logtape": "^2.0.4"
-	}
+		"@logtape/logtape": "catalog:"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"lefthook": "catalog:",
+		"sort-package-json": "catalog:",
+		"turbo": "catalog:"
+	},
+	"packageManager": "pnpm@10.32.1"
 }

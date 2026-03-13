@@ -1,47 +1,20 @@
 #!/usr/bin/env bun
-// Load .env file (Bun automatically loads .env files when this is imported at the top)
 import "bun";
+import { Command } from "commander";
 
-import { loadPrompt, logger, runAgent, setupLogger } from "@agents/core";
-import { resolve } from "path";
-import { parseArgs } from "util";
+import { registerGitlabCommand } from "./commands/gitlab";
+import { registerLocalCommand } from "./commands/local";
+import { registerRunCommand } from "./commands/run";
 
-await setupLogger();
+const program = new Command();
 
-const log = logger.cli;
+program
+	.name("agent")
+	.description("CLI for running and managing AI agents")
+	.version("0.1.0");
 
-const { values } = parseArgs({
-	args: Bun.argv.slice(2),
-	options: {
-		prompt: { type: "string", short: "p" },
-		"working-directory": { type: "string", short: "w" },
-		"permission-mode": { type: "string", short: "m" },
-		"max-turns": { type: "string", short: "t" },
-		model: { type: "string" },
-	},
-	strict: true,
-});
+registerRunCommand(program);
+registerGitlabCommand(program);
+registerLocalCommand(program);
 
-if (!values.prompt) {
-	log.error`Usage: agent --prompt <path> [--working-directory <path>] [--permission-mode <mode>] [--max-turns <n>] [--model <id>]`;
-	process.exit(1);
-}
-
-const promptContent = await loadPrompt(values.prompt);
-const cwd = resolve(values["working-directory"] ?? ".");
-
-log.info`Running agent in ${cwd}`;
-log.info`Prompt: ${values.prompt}`;
-log.info`---`;
-
-const { invocationId, result } = await runAgent({
-	prompt: promptContent,
-	cwd,
-	permissionMode: (values["permission-mode"] as any) ?? "bypassPermissions",
-	maxTurns: values["max-turns"] ? parseInt(values["max-turns"], 10) : undefined,
-	model: values.model,
-});
-
-log.info`---`;
-log.info`Invocation ID: ${invocationId}`;
-log.info`${result}`;
+program.parse();

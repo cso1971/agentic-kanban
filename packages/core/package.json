@@ -1,18 +1,19 @@
 {
-  "name": "@agents/core",
-  "version": "0.1.0",
-  "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "latest",
-    "@logtape/logtape": "^2.0.4"
-  },
-  "devDependencies": {
-    "bun-types": "latest",
-    "typescript": "^5"
-  }
+	"name": "@agentic-kanban/core",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "src/index.ts",
+	"types": "src/index.ts",
+	"scripts": {
+		"test": "bun test --pass-with-no-tests",
+		"typecheck": "tsgo --noEmit"
+	},
+	"dependencies": {
+		"@anthropic-ai/claude-agent-sdk": "catalog:",
+		"@logtape/logtape": "catalog:"
+	},
+	"devDependencies": {
+		"@typescript/native-preview": "catalog:",
+		"bun-types": "catalog:"
+	}
 }

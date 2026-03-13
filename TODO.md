@@ -1,6 +1,7 @@
-- add proper logger
-- use openapi + react-query
-https://openapi-ts.dev/openapi-react-query/use-query
-- use pnpm catalogs
-- add biome
-- add lefthook
+- sane .env process with zod
+- delete the single sessions
+- resume the sessions with the session id
+- code discovery with sonar + lsp
+- show total cost of sessions
+- add sessionid to route
+- add skill creator to config to test the skills

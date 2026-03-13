@@ -1,7 +1,12 @@
-import { createRouter, createRootRoute, createRoute } from "@tanstack/react-router";
+import {
+	createRootRoute,
+	createRoute,
+	createRouter,
+} from "@tanstack/react-router";
 import { RootLayout } from "./routes/__root";
 import { Dashboard } from "./routes/index";
-import { InvocationsPage } from "./routes/invocations";
+import { AgentSessionsPage } from "./routes/agent-sessions";
+import { ConfigPage } from "./routes/config";
 
 const rootRoute = createRootRoute({
 	component: RootLayout,
@@ -13,13 +18,25 @@ const indexRoute = createRoute({
 	component: Dashboard,
 });
 
-const invocationsRoute = createRoute({
+const agentSessionsRoute = createRoute({
 	getParentRoute: () => rootRoute,
-	path: "/invocations",
-	component: InvocationsPage,
+	path: "/agent-sessions",
+	component: AgentSessionsPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, invocationsRoute]);
+const agentSessionDetailRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/agent-sessions/$sessionId",
+	component: AgentSessionsPage,
+});
+
+const configRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/config",
+	component: ConfigPage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, agentSessionsRoute, agentSessionDetailRoute, configRoute]);
 
 export const router = createRouter({ routeTree });
 

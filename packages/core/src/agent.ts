@@ -1,122 +1,190 @@
-import {
-	type Options,
-	query,
-	type SDKMessage,
-} from "@anthropic-ai/claude-agent-sdk";
-import { randomUUID } from "crypto";
-import {
-	appendMessage,
-	completeInvocation,
-	createInvocation,
-	type InvocationMessage,
-} from "./store";
+import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { logger } from "./logger";
+import { parseError } from "./parse-error";
+import { parseMessage } from "./parse-message";
+import {
+	type AgentSessionMessage,
+	appendMessage,
+	completeAgentSession,
+	createAgentSession,
+} from "./store";
 
-export interface RunAgentOptions {
+const log = logger.core;
+
+export interface AskQuestionOptions {
 	prompt: string;
-	cwd: string;
-	allowedTools?: string[];
-	permissionMode?: "default" | "plan" | "acceptEdits" | "bypassPermissions";
-	maxTurns?: number;
 	model?: string;
 	systemPrompt?: string;
 }
 
+export interface RunAgentOptions {
+	prompt: string;
+	cwd?: string;
+	model?: string;
+	/** Pre-generated agent session ID */
+	agentSessionId?: string;
+	/** Associated job ID for queue correlation */
+	jobId?: string;
+	/** Extra CLI flags passed to `claude` */
+	extraArgs?: string[];
+	/** Permission mode flag (--dangerously-skip-permissions, etc.) */
+	permissionMode?: "default" | "bypassPermissions";
+}
+
 export interface RunAgentResult {
-	invocationId: string;
+	agentSessionId: string;
 	result: string;
 }
 
-function extractText(message: SDKMessage): string | undefined {
-	if (message.type === "assistant") {
-		const blocks = message.message?.content;
-		if (Array.isArray(blocks)) {
-			return blocks
-				.filter((b: any) => b.type === "text")
-				.map((b: any) => b.text)
-				.join("\n");
-		}
-	}
-
-	if (message.type === "result" && "result" in message) {
-		return message.result;
-	}
-
-	return undefined;
-}
-
+/**
+ * Runs the `claude` CLI executable as a subprocess, creates an agent session,
+ * and streams all stdout output as session messages.
+ */
 export async function runAgent(
 	options: RunAgentOptions,
 ): Promise<RunAgentResult> {
-	const invocationId = randomUUID();
-	await createInvocation(invocationId, options.prompt, options.cwd);
+	const sessionId = options.agentSessionId ?? randomUUID();
+	const cwd = options.cwd ?? process.cwd();
 
-	const bypassPermissions =
-		options.permissionMode === "bypassPermissions" || !options.permissionMode;
+	await createAgentSession(sessionId, options.prompt, cwd, options.jobId);
 
-	const agentOptions: Options = {
-		cwd: options.cwd,
-		allowedTools: options.allowedTools ?? [
-			"Read",
-			"Write",
-			"Edit",
-			"Bash",
-			"Glob",
-			"Grep",
-		],
-		permissionMode: options.permissionMode ?? "bypassPermissions",
-		allowDangerouslySkipPermissions: bypassPermissions,
-		maxTurns: options.maxTurns ?? 30,
-		model: options.model,
-		systemPrompt: options.systemPrompt,
-	};
+	const args: string[] = [
+		"--print",
+		"--verbose",
+		"--output-format",
+		"stream-json",
+		options.prompt,
+	];
 
-	let result = "";
-	let durationMs: number | undefined;
-	let totalCostUsd: number | undefined;
-	let numTurns: number | undefined;
-
-	try {
-		for await (const message of query({
-			prompt: options.prompt,
-			options: agentOptions,
-		})) {
-			logger.core.debug`Agent message: ${message}`;
-
-			const text = extractText(message);
-
-			const invMsg: InvocationMessage = {
-				timestamp: new Date().toISOString(),
-				type: message.type,
-				text,
-				raw: message,
-			};
-
-			await appendMessage(invocationId, invMsg);
-
-			if (message.type === "result" && "result" in message) {
-				result = message.result ?? "";
-				durationMs = message.duration_ms;
-				totalCostUsd = message.total_cost_usd;
-				numTurns = message.num_turns;
-			}
-		}
-
-		await completeInvocation(invocationId, {
-			status: "completed",
-			result,
-			durationMs,
-			totalCostUsd,
-			numTurns,
-			model: options.model,
-		});
-	} catch (err) {
-		await completeInvocation(invocationId, {
-			status: "failed",
-			error: err instanceof Error ? err.message : String(err),
-		});
-		throw err;
+	if (options.model) {
+		args.push("--model", options.model);
 	}
 
-	return { invocationId, result };
+	if (options.permissionMode === "bypassPermissions") {
+		args.push("--dangerously-skip-permissions");
+	}
+
+	if (options.extraArgs) {
+		args.push(...options.extraArgs);
+	}
+
+	log.info`Starting CLI session ${sessionId} with: claude ${args.join(" ")}`;
+
+	return new Promise<RunAgentResult>((resolve, reject) => {
+		const child = spawn("claude", args, {
+			cwd,
+			stdio: ["ignore", "pipe", "pipe"],
+			env: { ...process.env, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1" },
+		});
+
+		let fullOutput = "";
+
+		child.stdout.on("data", async (chunk: Buffer) => {
+			const raw = chunk.toString();
+			fullOutput += raw;
+
+			const lines = raw.split("\n").filter((line) => line.trim());
+			for (const json of lines) {
+				const message = parseMessage(json);
+
+				const msg: AgentSessionMessage = {
+					timestamp: new Date().toISOString(),
+					type: "cli_stdout",
+					message,
+					raw: { stream: "stdout", chunk: json },
+				};
+
+				await appendMessage(sessionId, msg).catch((err) => {
+					log.error`Failed to append stdout message: ${err}`;
+				});
+			}
+		});
+
+		child.stderr.on("data", async (chunk: Buffer) => {
+			const raw = chunk.toString();
+
+			const lines = raw.split("\n").filter((line) => line.trim());
+			for (const json of lines) {
+				const error = parseError(json);
+
+				const msg: AgentSessionMessage = {
+					timestamp: new Date().toISOString(),
+					type: "cli_stderr",
+					message: error,
+					raw: { stream: "stderr", chunk: json },
+				};
+
+				await appendMessage(sessionId, msg).catch((err) => {
+					log.error`Failed to append stderr message: ${err}`;
+				});
+			}
+		});
+
+		child.on("close", async (code) => {
+			const status = code === 0 ? "completed" : "failed";
+
+			await completeAgentSession(sessionId, {
+				status,
+				result: status === "completed" ? fullOutput : undefined,
+				error:
+					status === "failed" ? `claude exited with code ${code}` : undefined,
+			});
+
+			if (status === "completed") {
+				resolve({ agentSessionId: sessionId, result: fullOutput });
+			} else {
+				reject(new Error(`claude exited with code ${code}`));
+			}
+		});
+
+		child.on("error", async (err) => {
+			await completeAgentSession(sessionId, {
+				status: "failed",
+				error: err.message,
+			});
+			reject(err);
+		});
+	});
 }
+
+export async function askQuestion(
+	options: AskQuestionOptions,
+): Promise<string> {
+	const args: string[] = ["--print", "--max-turns", "1", options.prompt];
+
+	if (options.model) {
+		args.push("--model", options.model);
+	}
+
+	if (options.systemPrompt) {
+		args.push("--system-prompt", options.systemPrompt);
+	}
+
+	return new Promise<string>((resolve, reject) => {
+		const child = spawn("claude", args, {
+			stdio: ["ignore", "pipe", "pipe"],
+		});
+
+		let output = "";
+
+		child.stdout.on("data", (chunk: Buffer) => {
+			output += chunk.toString();
+		});
+
+		child.on("close", (code) => {
+			if (code === 0) {
+				resolve(output.trim());
+			} else {
+				reject(new Error(`claude exited with code ${code}`));
+			}
+		});
+
+		child.on("error", (err) => reject(err));
+	});
+}
+
+export const agent = {
+	ask: askQuestion,
+	run: runAgent,
+};

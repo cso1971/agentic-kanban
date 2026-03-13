@@ -1,0 +1,21 @@
+{
+	"name": "@agentic-kanban/worker",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "src/worker.ts",
+	"types": "src/worker.ts",
+	"scripts": {
+		"dev": "bun run --cwd ../../ packages/worker/src/worker.ts",
+		"test": "bun test --pass-with-no-tests",
+		"typecheck": "tsgo --noEmit"
+	},
+	"dependencies": {
+		"@agentic-kanban/core": "workspace:*",
+		"@agentic-kanban/queue": "workspace:*",
+		"bullmq": "catalog:"
+	},
+	"devDependencies": {
+		"@typescript/native-preview": "catalog:",
+		"bun-types": "catalog:"
+	}
+}

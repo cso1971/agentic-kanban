@@ -1,0 +1,10 @@
+{
+	"rules": [
+		{
+			"event": "issue",
+			"action": "update",
+			"label": "Breakdown",
+			"prompt": "./triggers/breakdown.md"
+		}
+	]
+}

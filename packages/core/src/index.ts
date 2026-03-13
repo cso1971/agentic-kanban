@@ -1,17 +1,16 @@
-export { type RunAgentOptions, type RunAgentResult, runAgent } from "./agent";
+export type { AgentDefinition } from "@anthropic-ai/claude-agent-sdk";
+export { agent, type RunAgentOptions, type RunAgentResult } from "./agent";
 export {
 	type AgentConfig,
-	type GitLabWebhookPayload,
 	loadConfig,
-	matchWebhookToPrompt,
 	type WebhookRule,
 } from "./config";
-export { createLogger, logger, setupLogger } from "./logger";
+export { env } from "./env";
+export { logger } from "./logger";
 export { loadPrompt } from "./prompt";
 export {
-	getInvocation,
-	getInvocationMessages,
-	type Invocation,
-	type InvocationMessage,
-	listInvocations,
+	type AgentSession,
+	type AgentSessionMessage,
+	type ArtifactFile,
+	store,
 } from "./store";

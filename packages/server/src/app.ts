@@ -1,7 +1,8 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
+import type { AgentConfig } from "@agentic-kanban/core";
 import { swaggerUI } from "@hono/swagger-ui";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
-import type { AgentConfig } from "@agents/core";
+import { registerBullBoard } from "./bull-board";
 import { registerRoutes } from "./routes";
 
 interface AppOptions {
@@ -18,7 +19,7 @@ export function createApp(options: AppOptions): OpenAPIHono {
 		"*",
 		cors({
 			origin: "*",
-			allowMethods: ["GET", "POST", "OPTIONS"],
+			allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
 			allowHeaders: ["Content-Type", "X-Gitlab-Token"],
 		}),
 	);
@@ -30,18 +31,22 @@ export function createApp(options: AppOptions): OpenAPIHono {
 		secretToken: options.secretToken,
 	});
 
+	// Bull Board for queue monitoring
+	registerBullBoard(app);
+
 	// OpenAPI spec endpoint
 	app.doc("/openapi.json", {
 		openapi: "3.1.0",
 		info: {
 			title: "Agents API",
 			version: "0.1.0",
-			description: "API for managing agent invocations triggered by GitLab webhooks",
+			description:
+				"API for managing agent sessions triggered by GitLab webhooks",
 		},
 	});
 
 	// Swagger UI
-	app.get("/docs", swaggerUI({ url: "/openapi.json" }));
+	app.get("/", swaggerUI({ url: "/openapi.json" }));
 
 	return app;
 }

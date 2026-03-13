@@ -1,0 +1,7 @@
+[tools]
+bun = "latest"
+lefthook = "latest"
+pnpm = "10.28"
+
+# for agents
+glab = "latest"

@@ -1,26 +1,37 @@
+import type { AgentConfig } from "@agentic-kanban/core";
 import type { OpenAPIHono } from "@hono/zod-openapi";
+import { dirname, resolve } from "node:path";
 import {
-	type AgentConfig,
-	getInvocation,
-	getInvocationMessages,
-	listInvocations,
-	loadPrompt,
-	matchWebhookToPrompt,
-	runAgent,
-	logger,
-} from "@agents/core";
-import { dirname, resolve } from "path";
-
-const log = logger.server;
+	getAgentSessionArtifactHandler,
+	getAgentSessionHandler,
+	getAgentSessionMessagesHandler,
+	listAgentSessionArtifactsHandler,
+	listAgentSessionsHandler,
+} from "./handlers/agent-sessions";
+import {
+	createConfigImageHandler,
+	createConfigReadFileHandler,
+	createConfigTreeHandler,
+	createConfigWriteFileHandler,
+} from "./handlers/config";
+import { createGitlabWebhookHandler } from "./handlers/webhook";
 import { healthRoute } from "./health";
 import {
-	getInvocationMessagesRoute,
-	getInvocationRoute,
-	listInvocationsRoute,
-} from "./invocations";
+	getAgentSessionArtifactRoute,
+	getAgentSessionMessagesRoute,
+	getAgentSessionRoute,
+	listAgentSessionArtifactsRoute,
+	listAgentSessionsRoute,
+} from "./agent-sessions";
+import {
+	configImageRoute,
+	configReadFileRoute,
+	configTreeRoute,
+	configWriteFileRoute,
+} from "./config";
 import { gitlabWebhookRoute } from "./webhook";
 
-interface RouteContext {
+export interface RouteContext {
 	config: AgentConfig;
 	configPath: string;
 	secretToken?: string;
@@ -32,73 +43,26 @@ export function registerRoutes(app: OpenAPIHono, ctx: RouteContext): void {
 		return c.json({ status: "ok" as const });
 	});
 
-	// Invocations
-	app.openapi(listInvocationsRoute, async (c) => {
-		const invocations = await listInvocations();
-		return c.json(invocations);
-	});
+	// Agent Sessions
+	app.openapi(listAgentSessionsRoute, listAgentSessionsHandler);
+	app.openapi(getAgentSessionRoute, getAgentSessionHandler);
+	app.openapi(getAgentSessionMessagesRoute, getAgentSessionMessagesHandler);
+	app.openapi(
+		listAgentSessionArtifactsRoute,
+		listAgentSessionArtifactsHandler,
+	);
+	app.openapi(
+		getAgentSessionArtifactRoute,
+		getAgentSessionArtifactHandler,
+	);
 
-	app.openapi(getInvocationRoute, async (c) => {
-		const { id } = c.req.valid("param");
-		const invocation = await getInvocation(id);
-		if (!invocation) {
-			return c.json({ error: "not found" }, 404);
-		}
-		return c.json(invocation, 200);
-	});
-
-	app.openapi(getInvocationMessagesRoute, async (c) => {
-		const { id } = c.req.valid("param");
-		const messages = await getInvocationMessages(id);
-		return c.json(messages);
-	});
+	// Config
+	const configDir = resolve(dirname(resolve(ctx.configPath)));
+	app.openapi(configTreeRoute, createConfigTreeHandler(configDir));
+	app.openapi(configReadFileRoute, createConfigReadFileHandler(configDir));
+	app.openapi(configWriteFileRoute, createConfigWriteFileHandler(configDir));
+	app.openapi(configImageRoute, createConfigImageHandler(configDir));
 
 	// Webhook
-	app.openapi(gitlabWebhookRoute, async (c) => {
-		if (ctx.secretToken) {
-			const token = c.req.header("x-gitlab-token");
-			if (token !== ctx.secretToken) {
-				return c.json({ error: "Unauthorized" as const }, 401);
-			}
-		}
-
-		const payload = c.req.valid("json");
-		const rule = matchWebhookToPrompt(payload, ctx.config);
-
-		if (!rule) {
-			return c.json({ status: "ignored" as const, reason: "no matching rule" }, 200);
-		}
-
-		const configDir = dirname(resolve(ctx.configPath));
-		const promptPath = resolve(configDir, rule.prompt);
-		const workingDir = resolve(
-			configDir,
-			(rule.workingDirectory ?? ".").replace(
-				"{{project_path}}",
-				payload.project?.path_with_namespace ?? "unknown",
-			),
-		);
-
-		log.info`Matched rule: label="${rule.label}" -> prompt="${rule.prompt}"`;
-		log.info`Working directory: ${workingDir}`;
-
-		// Fire-and-forget: run agent in background
-		(async () => {
-			try {
-				const promptContent = await loadPrompt(promptPath);
-				const { invocationId, result } = await runAgent({
-					prompt: promptContent,
-					cwd: workingDir,
-				});
-				log.info`Agent completed (${invocationId}) for label="${rule.label}": ${result.slice(0, 200)}`;
-			} catch (err) {
-				log.error`Agent failed for label="${rule.label}": ${err}`;
-			}
-		})();
-
-		return c.json({
-			status: "accepted" as const,
-			matched_rule: { label: rule.label, prompt: rule.prompt },
-		}, 200);
-	});
+	app.openapi(gitlabWebhookRoute, createGitlabWebhookHandler(ctx));
 }

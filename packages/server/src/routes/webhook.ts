@@ -1,10 +1,4 @@
-import { createRoute } from "@hono/zod-openapi";
-import {
-	GitLabWebhookPayloadSchema,
-	WebhookAcceptedResponseSchema,
-	WebhookIgnoredResponseSchema,
-	WebhookUnauthorizedResponseSchema,
-} from "../schemas/webhook";
+import { createRoute, z } from "@hono/zod-openapi";
 
 export const gitlabWebhookRoute = createRoute({
 	method: "post",
@@ -12,12 +6,12 @@ export const gitlabWebhookRoute = createRoute({
 	tags: ["Webhook"],
 	summary: "GitLab webhook endpoint",
 	description:
-		"Receives GitLab webhook events and triggers agent invocations based on configured rules",
+		"Receives GitLab webhook events and triggers agent sessions based on configured rules",
 	request: {
 		body: {
 			content: {
 				"application/json": {
-					schema: GitLabWebhookPayloadSchema,
+					schema: z.any(),
 				},
 			},
 		},
@@ -27,7 +21,7 @@ export const gitlabWebhookRoute = createRoute({
 			description: "Webhook processed",
 			content: {
 				"application/json": {
-					schema: WebhookAcceptedResponseSchema.or(WebhookIgnoredResponseSchema),
+					schema: z.any(),
 				},
 			},
 		},
@@ -35,7 +29,7 @@ export const gitlabWebhookRoute = createRoute({
 			description: "Unauthorized - invalid or missing X-Gitlab-Token",
 			content: {
 				"application/json": {
-					schema: WebhookUnauthorizedResponseSchema,
+					schema: z.any(),
 				},
 			},
 		},

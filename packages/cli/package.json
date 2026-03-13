@@ -1,19 +1,23 @@
 {
-	"name": "@agents/cli",
+	"name": "@agentic-kanban/cli",
 	"version": "0.1.0",
 	"type": "module",
 	"bin": {
-		"agent": "src/cli.ts"
+		"cli": "src/cli.ts"
 	},
 	"scripts": {
-		"cli": "bun run src/cli.ts",
-		"typecheck": "tsc --noEmit"
+		"cli": "bun run --cwd ../../ packages/cli/src/cli.ts",
+		"test": "bun test --pass-with-no-tests",
+		"typecheck": "tsgo --noEmit"
 	},
 	"dependencies": {
-		"@agents/core": "workspace:*"
+		"@agentic-kanban/core": "workspace:*",
+		"@agentic-kanban/gitlab": "workspace:*",
+		"@agentic-kanban/queue": "workspace:*",
+		"commander": "^14.0.3"
 	},
 	"devDependencies": {
-		"bun-types": "latest",
-		"typescript": "^5"
+		"@typescript/native-preview": "catalog:",
+		"bun-types": "catalog:"
 	}
 }

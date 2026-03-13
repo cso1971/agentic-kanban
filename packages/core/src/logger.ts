@@ -1,14 +1,22 @@
-import { configure, getConsoleSink, getLogger } from "@logtape/logtape";
+import {
+	configure,
+	getAnsiColorFormatter,
+	getConsoleSink,
+	getLogger,
+} from "@logtape/logtape";
 
 let configured = false;
 
-export async function setupLogger() {
-	if (configured) return;
+async function setupLogger() {
+	if (configured) {
+		return;
+	}
+
 	configured = true;
 
 	await configure({
 		sinks: {
-			console: getConsoleSink(),
+			console: getConsoleSink({ formatter: getAnsiColorFormatter() }),
 		},
 		loggers: [
 			{
@@ -25,13 +33,23 @@ export async function setupLogger() {
 	});
 }
 
-export function createLogger(category: string[]) {
+function createLogger(category: string[]) {
+	setupLogger();
+
+	if (!configured) {
+		throw new Error("logger not configured!");
+	}
+
 	return getLogger(["agents", ...category]);
 }
+
+await setupLogger();
 
 // Pre-configured loggers for each package
 export const logger = {
 	core: createLogger(["core"]),
 	server: createLogger(["server"]),
 	cli: createLogger(["cli"]),
+	queue: createLogger(["queue"]),
+	gitlab: createLogger(["gitlab"]),
 };

@@ -1,3 +1,52 @@
 packages:
   - "packages/*"
   - "examples/*"
+
+catalog:
+  # Runtime & Core
+  "@anthropic-ai/claude-agent-sdk": latest
+  "@logtape/logtape": ^2.0.4
+
+  # Server (Hono)
+  hono: ^4.12.7
+  "@hono/swagger-ui": ^0.6.1
+  "@hono/zod-openapi": ^1.2.2
+  zod: ^4.3.6
+
+  # React & UI
+  react: ^19
+  react-dom: ^19
+  "@tailwindcss/vite": ^4.2.1
+  tailwindcss: ^4.2.1
+  "@tanstack/react-query": ^5.90.21
+  "@tanstack/react-router": ^1.166.7
+
+  # OpenAPI
+  openapi-fetch: ^0.17.0
+  openapi-react-query: ^0.5.4
+
+  # GitLab
+  "@gitbeaker/rest": ^43.8.0
+
+  # Queue
+  bullmq: ^5.45.0
+  ioredis: ^5.4.1
+
+  # Bull Board
+  "@bull-board/api": ^6.20.3
+  "@bull-board/hono": ^6.20.3
+
+  # Dev Tools
+  "@biomejs/biome": ^2.4.6
+  lefthook: ^2.1.4
+  sort-package-json: ^3.6.1
+  turbo: ^2
+  vite: ^8
+  "@vitejs/plugin-react": ^5
+  openapi-typescript: ^7.13.0
+
+  # Types
+  bun-types: latest
+  "@typescript/native-preview": 7.0.0-dev.20260313.1
+  "@types/react": ^19
+  "@types/react-dom": ^19

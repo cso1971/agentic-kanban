@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    # biome-check:
+    #   glob: "*.{js,ts,jsx,tsx,json}"
+    #   run: pnpm biome:ci {staged_files}
+    sort-root-package-json:
+      glob:
+        - "package.json"
+        - "*/package.json"
+      run: pnpm exec sort-package-json {staged_files}
+      stage_fixed: true
+    pnpm-lock-check:
+      glob:
+        - "package.json"
+        - "*/package.json"
+      run: pnpm install --frozen-lockfile --offline

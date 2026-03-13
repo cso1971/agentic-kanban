@@ -43,7 +43,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invocations": {
+    "/api/agent-sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -51,8 +51,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List all invocations
-         * @description Returns a list of all agent invocations, sorted by most recent first
+         * List all agent sessions
+         * @description Returns a list of all agent sessions, sorted by most recent first
          */
         get: {
             parameters: {
@@ -63,13 +63,13 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description List of invocations */
+                /** @description List of agent sessions */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Invocation"][];
+                        "application/json": components["schemas"]["AgentSession"][];
                     };
                 };
             };
@@ -82,7 +82,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invocations/{id}": {
+    "/api/agent-sessions/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -90,31 +90,31 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get invocation by ID
-         * @description Returns a single invocation by its ID
+         * Get agent session by ID
+         * @description Returns a single agent session by its ID
          */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description Invocation ID */
+                    /** @description Agent Session ID */
                     id: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Invocation found */
+                /** @description Agent session found */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Invocation"];
+                        "application/json": components["schemas"]["AgentSession"];
                     };
                 };
-                /** @description Invocation not found */
+                /** @description Agent session not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -133,7 +133,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/invocations/{id}/messages": {
+    "/api/agent-sessions/{id}/messages": {
         parameters: {
             query?: never;
             header?: never;
@@ -141,15 +141,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get invocation messages
-         * @description Returns all messages for a specific invocation
+         * Get agent session messages
+         * @description Returns all messages for a specific agent session
          */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description Invocation ID */
+                    /** @description Agent Session ID */
                     id: string;
                 };
                 cookie?: never;
@@ -162,7 +162,292 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["InvocationMessage"][];
+                        "application/json": components["schemas"]["AgentSessionMessage"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent-sessions/{id}/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List agent session artifacts
+         * @description Returns all artifact files for a specific agent session
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Agent Session ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of artifact files */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ArtifactFile"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agent-sessions/{id}/artifact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get artifact file content
+         * @description Returns the content of a specific artifact file by its relative path
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Relative path within the artifacts directory */
+                    path: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Agent Session ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Artifact file content */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ArtifactContent"];
+                    };
+                };
+                /** @description Artifact not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/config/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get config directory tree
+         * @description Returns the file tree structure of the config directory
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Config directory tree */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigTreeResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/config/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a config file
+         * @description Reads a file from the config directory. Returns text content for text files and base64-encoded content for binary files.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Relative path within config directory */
+                    path: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description File content */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigFileResponse"];
+                    };
+                };
+                /** @description Invalid path */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description File not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        /**
+         * Write a config file
+         * @description Creates or updates a file in the config directory
+         */
+        put: {
+            parameters: {
+                query: {
+                    /** @description Relative path within config directory */
+                    path: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ConfigFileWriteBody"];
+                };
+            };
+            responses: {
+                /** @description File written successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfigFileWriteResponse"];
+                    };
+                };
+                /** @description Invalid path */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/config/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Serve a config image file
+         * @description Serves an image file from the config directory with proper content type
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Relative path within config directory */
+                    path: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Image file */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "image/*": string;
+                    };
+                };
+                /** @description Image not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
             };
@@ -186,7 +471,7 @@ export interface paths {
         put?: never;
         /**
          * GitLab webhook endpoint
-         * @description Receives GitLab webhook events and triggers agent invocations based on configured rules
+         * @description Receives GitLab webhook events and triggers agent sessions based on configured rules
          */
         post: {
             parameters: {
@@ -235,7 +520,7 @@ export interface components {
             /** @enum {string} */
             status: "ok";
         };
-        Invocation: {
+        AgentSession: {
             id: string;
             /** @enum {string} */
             status: "running" | "completed" | "failed";
@@ -249,15 +534,105 @@ export interface components {
             totalCostUsd?: number;
             numTurns?: number;
             model?: string;
+            jobId?: string;
         };
         ErrorResponse: {
             error: string;
         };
-        InvocationMessage: {
+        AgentSessionMessage: {
             timestamp: string;
             type: string;
-            text?: string;
+            message?: components["schemas"]["ParsedMessage"];
             raw?: unknown;
+        };
+        ParsedMessage: {
+            /** @enum {string} */
+            type: "assistant_text";
+            text: string;
+            messageId: string;
+        } | {
+            /** @enum {string} */
+            type: "tool_use";
+            toolName: string;
+            toolUseId: string;
+            input: {
+                [key: string]: unknown;
+            };
+        } | {
+            /** @enum {string} */
+            type: "tool_result";
+            toolUseId: string;
+            content: string;
+            isError: boolean;
+        } | {
+            /** @enum {string} */
+            type: "task_progress";
+            taskId: string;
+            description: string;
+            toolName?: string;
+            usage: {
+                totalTokens: number;
+                toolUses: number;
+                durationMs: number;
+            };
+        } | {
+            /** @enum {string} */
+            type: "task_notification";
+            taskId: string;
+            /** @enum {string} */
+            status: "completed" | "failed" | "stopped";
+            summary: string;
+        } | {
+            /** @enum {string} */
+            type: "result";
+            subtype: string;
+            result?: string;
+            error?: string;
+            durationMs: number;
+            totalCostUsd: number;
+            numTurns: number;
+        } | {
+            /** @enum {string} */
+            type: "init";
+            model: string;
+            sessionId: string;
+            tools: string[];
+        } | {
+            /** @enum {string} */
+            type: "unknown";
+            sdkType: string;
+            raw?: unknown;
+        };
+        ArtifactFile: {
+            name: string;
+            size: number;
+            modifiedAt: string;
+        };
+        ArtifactContent: {
+            name: string;
+            content: string;
+        };
+        ConfigTreeResponse: {
+            tree: components["schemas"]["ConfigTreeNode"][];
+        };
+        ConfigTreeNode: {
+            name: string;
+            path: string;
+            /** @enum {string} */
+            type: "file" | "directory";
+            children?: components["schemas"]["ConfigTreeNode"][];
+        };
+        ConfigFileResponse: {
+            path: string;
+            content: string;
+            mimeType: string;
+        };
+        ConfigFileWriteResponse: {
+            path: string;
+            success: boolean;
+        };
+        ConfigFileWriteBody: {
+            content: string;
         };
         WebhookAcceptedResponse: {
             /** @enum {string} */
@@ -266,6 +641,8 @@ export interface components {
                 label: string;
                 prompt: string;
             };
+            jobId: string;
+            agentSessionId: string;
         };
         WebhookIgnoredResponse: {
             /** @enum {string} */
@@ -278,27 +655,128 @@ export interface components {
         };
         GitLabWebhookPayload: {
             object_kind: string;
+            event_type?: string;
+            user?: {
+                id: number;
+                name: string;
+                username: string;
+                avatar_url: string;
+                email?: string;
+            };
+            project?: {
+                id: number;
+                name: string;
+                description: string | null;
+                web_url: string;
+                avatar_url: string | null;
+                git_ssh_url: string;
+                git_http_url: string;
+                namespace: string;
+                visibility_level: number;
+                path_with_namespace: string;
+                default_branch: string;
+                ci_config_path?: string | null;
+                homepage: string;
+                url: string;
+                ssh_url: string;
+                http_url: string;
+            };
             object_attributes?: {
-                action?: string;
+                author_id: number;
+                closed_at?: string | null;
+                confidential?: boolean;
+                created_at: string;
+                description: string | null;
+                discussion_locked?: boolean | null;
+                due_date?: string | null;
+                id: number;
+                iid: number;
+                last_edited_at?: string | null;
+                last_edited_by_id?: number | null;
+                milestone_id?: number | null;
+                moved_to_id?: number | null;
+                duplicated_to_id?: number | null;
+                project_id: number;
+                relative_position?: number;
+                state_id?: number;
+                time_estimate?: number;
+                title: string;
+                updated_at: string;
+                updated_by_id?: number | null;
+                type?: string;
+                url?: string;
+                total_time_spent?: number;
+                time_change?: number;
+                human_total_time_spent?: string | null;
+                human_time_change?: string | null;
+                human_time_estimate?: string | null;
+                assignee_ids?: number[];
+                assignee_id?: number | null;
                 labels?: {
+                    id: number;
                     title: string;
+                    color: string;
+                    project_id: number;
+                    created_at: string;
+                    updated_at: string;
+                    template: boolean;
+                    description: string | null;
+                    type: string;
+                    group_id: number | null;
                 }[];
+                state?: string;
+                severity?: string;
+                action?: string;
             };
             labels?: {
+                id: number;
                 title: string;
+                color: string;
+                project_id: number;
+                created_at: string;
+                updated_at: string;
+                template: boolean;
+                description: string | null;
+                type: string;
+                group_id: number | null;
             }[];
             changes?: {
+                updated_at?: {
+                    previous: string;
+                    current: string;
+                };
                 labels?: {
-                    previous?: {
+                    previous: {
+                        id: number;
                         title: string;
+                        color: string;
+                        project_id: number;
+                        created_at: string;
+                        updated_at: string;
+                        template: boolean;
+                        description: string | null;
+                        type: string;
+                        group_id: number | null;
                     }[];
-                    current?: {
+                    current: {
+                        id: number;
                         title: string;
+                        color: string;
+                        project_id: number;
+                        created_at: string;
+                        updated_at: string;
+                        template: boolean;
+                        description: string | null;
+                        type: string;
+                        group_id: number | null;
                     }[];
                 };
             };
-            project?: {
-                path_with_namespace?: string;
+            repository?: {
+                name: string;
+                url: string;
+                description: string | null;
+                homepage: string;
             };
         };
     };

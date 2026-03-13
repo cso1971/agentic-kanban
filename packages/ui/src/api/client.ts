@@ -1,6 +1,6 @@
 import createFetchClient from "openapi-fetch";
 import createClient from "openapi-react-query";
-import type { paths, components } from "./schema";
+import type { components, paths } from "./schema";
 
 const fetchClient = createFetchClient<paths>({
 	baseUrl: "",
@@ -8,5 +8,5 @@ const fetchClient = createFetchClient<paths>({
 
 export const $api = createClient(fetchClient);
 
-export type Invocation = components["schemas"]["Invocation"];
-export type InvocationMessage = components["schemas"]["InvocationMessage"];
+export type AgentSession = components["schemas"]["AgentSession"];
+export type AgentSessionMessage = components["schemas"]["AgentSessionMessage"];
