@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import type { ParsedMessage } from "./parse-message";
+import type { ParsedMessage } from "#parse-message";
 
 export interface AgentSession {
 	id: string;

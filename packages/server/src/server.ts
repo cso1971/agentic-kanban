@@ -2,7 +2,7 @@
 import "bun";
 
 import { loadConfig, logger } from "@agentic-kanban/core";
-import { createApp } from "./app";
+import { createApp } from "#app";
 
 const log = logger.server;
 

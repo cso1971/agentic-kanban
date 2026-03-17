@@ -2,8 +2,8 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { $api, type AgentSession } from "../api/client";
-import type { components } from "../api/schema";
+import { $api, type AgentSession } from "#api/client";
+import type { components } from "#api/schema";
 
 type ParsedMessage = components["schemas"]["ParsedMessage"];
 type AgentSessionMessage = components["schemas"]["AgentSessionMessage"];
@@ -55,7 +55,12 @@ export function AgentSessionsPage() {
 								: "border border-transparent bg-gray-50 hover:bg-gray-100"
 						}`}
 						key={session.id}
-						onClick={() => navigate({ to: "/agent-sessions/$sessionId", params: { sessionId: session.id } })}
+						onClick={() =>
+							navigate({
+								to: "/agent-sessions/$sessionId",
+								params: { sessionId: session.id },
+							})
+						}
 					>
 						<div className="mb-1 flex items-center justify-between">
 							<StatusBadge status={session.status} />
@@ -158,9 +163,11 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 				<span className="font-mono text-xs">{session.cwd}</span>
 			</div>
 
-			<details className="mb-4 group">
-				<summary className="mb-2 cursor-pointer font-medium text-gray-900 list-none flex items-center gap-1">
-					<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">&#9654;</span>
+			<details className="group mb-4">
+				<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+					<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+						&#9654;
+					</span>
 					Prompt
 				</summary>
 				<div className="prose prose-sm max-w-none rounded-lg bg-gray-100 p-3">
@@ -171,9 +178,11 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 			</details>
 
 			{session.result && (
-				<details className="mb-4 group">
-					<summary className="mb-2 cursor-pointer font-medium text-gray-900 list-none flex items-center gap-1">
-						<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">&#9654;</span>
+				<details className="group mb-4">
+					<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+						<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+							&#9654;
+						</span>
 						Result
 					</summary>
 					<pre className="whitespace-pre-wrap rounded-lg bg-green-50 p-3 text-sm">
@@ -191,7 +200,10 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 				</>
 			)}
 
-			<ArtifactsSection sessionId={session.id} isRunning={session.status === "running"} />
+			<ArtifactsSection
+				isRunning={session.status === "running"}
+				sessionId={session.id}
+			/>
 
 			<MessagesSection messages={messages} />
 		</div>
@@ -201,7 +213,10 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 function ArtifactsSection({
 	sessionId,
 	isRunning,
-}: { sessionId: string; isRunning: boolean }) {
+}: {
+	sessionId: string;
+	isRunning: boolean;
+}) {
 	const [selectedArtifact, setSelectedArtifact] = useState<string | null>(null);
 
 	const { data: artifacts } = $api.useQuery(
@@ -232,27 +247,29 @@ function ArtifactsSection({
 	}
 
 	return (
-		<details className="mb-4 group">
-			<summary className="mb-2 cursor-pointer font-medium text-gray-900 list-none flex items-center gap-1">
-				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">&#9654;</span>
+		<details className="group mb-4">
+			<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+					&#9654;
+				</span>
 				Artifacts ({artifacts.length})
 			</summary>
 			<div className="rounded-lg border border-gray-200 bg-white">
-				<div className="flex flex-wrap gap-2 border-b border-gray-100 p-3">
+				<div className="flex flex-wrap gap-2 border-gray-100 border-b p-3">
 					{artifacts.map((artifact) => (
 						<button
-							type="button"
-							key={artifact.name}
 							className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${
 								selectedArtifact === artifact.name
-									? "bg-blue-50 text-blue-700 border border-blue-200"
-									: "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+									? "border border-blue-200 bg-blue-50 text-blue-700"
+									: "border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
 							}`}
+							key={artifact.name}
 							onClick={() =>
 								setSelectedArtifact(
 									selectedArtifact === artifact.name ? null : artifact.name,
 								)
 							}
+							type="button"
 						>
 							<span className="text-gray-400">&#128196;</span>
 							<span className="font-medium">{artifact.name}</span>
@@ -376,27 +393,34 @@ function buildTurns(messages: AgentSessionMessage[]): Turn[] {
 
 function MessagesSection({
 	messages,
-}: { messages: AgentSessionMessage[] | undefined }) {
+}: {
+	messages: AgentSessionMessage[] | undefined;
+}) {
 	const [tab, setTab] = useState<"smart" | "raw">("smart");
 	const turns = useMemo(() => buildTurns(messages ?? []), [messages]);
 
 	return (
-		<details className="mb-4 group">
-			<summary className="mb-2 cursor-pointer font-medium text-gray-900 list-none flex items-center gap-1">
-				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">&#9654;</span>
+		<details className="group mb-4">
+			<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+					&#9654;
+				</span>
 				<span>Messages ({messages?.length ?? 0})</span>
-				<div className="ml-2 flex rounded-lg bg-gray-100 p-0.5" onClick={(e) => e.preventDefault()}>
+				<div
+					className="ml-2 flex rounded-lg bg-gray-100 p-0.5"
+					onClick={(e) => e.preventDefault()}
+				>
 					<button
-						type="button"
-						className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${tab === "smart" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+						className={`rounded-md px-3 py-1 font-medium text-xs transition-colors ${tab === "smart" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
 						onClick={() => setTab("smart")}
+						type="button"
 					>
 						Smart
 					</button>
 					<button
-						type="button"
-						className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${tab === "raw" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+						className={`rounded-md px-3 py-1 font-medium text-xs transition-colors ${tab === "raw" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
 						onClick={() => setTab("raw")}
+						type="button"
 					>
 						Raw
 					</button>
@@ -420,23 +444,21 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 	return (
 		<div className="space-y-3">
 			{turns.map((turn, i) => (
-				<div key={i} className="rounded-lg border border-gray-200 bg-white">
+				<div className="rounded-lg border border-gray-200 bg-white" key={i}>
 					{turn.other
 						.filter((m) => m.message?.type === "init")
 						.map((msg, j) => (
 							<div
+								className="border-gray-100 border-b px-4 py-2"
 								key={`init-${j}`}
-								className="border-b border-gray-100 px-4 py-2"
 							>
-								<span className="font-medium text-gray-400 text-xs">
-									init
-								</span>
+								<span className="font-medium text-gray-400 text-xs">init</span>
 								{msg.message && <MessageContent message={msg.message} />}
 							</div>
 						))}
 
 					{turn.text?.message && (
-						<div className="border-b border-gray-100 px-4 py-3">
+						<div className="border-gray-100 border-b px-4 py-3">
 							<pre className="m-0 whitespace-pre-wrap text-gray-800 text-sm">
 								{(turn.text.message as { text: string }).text}
 							</pre>
@@ -449,25 +471,21 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 					{turn.tools.length > 0 && (
 						<div className="divide-y divide-gray-100">
 							{turn.tools.map((node) => {
-								const toolMsg =
-									node.toolUse.message as ParsedMessage & {
-										type: "tool_use";
-									};
+								const toolMsg = node.toolUse.message as ParsedMessage & {
+									type: "tool_use";
+								};
 								const resultMsg = node.toolResult?.message as
 									| (ParsedMessage & { type: "tool_result" })
 									| undefined;
 
 								return (
-									<details
-										key={toolMsg.toolUseId}
-										className="group"
-									>
+									<details className="group" key={toolMsg.toolUseId}>
 										<summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2 hover:bg-gray-50">
 											<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
 												&#9654;
 											</span>
 											<span
-												className="font-mono font-medium text-xs"
+												className="font-medium font-mono text-xs"
 												style={{ color: messageColor("tool_use") }}
 											>
 												{toolMsg.toolName}
@@ -483,17 +501,15 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 												</span>
 											)}
 											{!resultMsg && (
-												<span className="rounded bg-yellow-100 px-1.5 py-0.5 text-yellow-600 text-xs">
+												<span className="rounded bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-600">
 													pending
 												</span>
 											)}
 											<span className="ml-auto text-gray-400 text-xs">
-												{new Date(
-													node.toolUse.timestamp,
-												).toLocaleTimeString()}
+												{new Date(node.toolUse.timestamp).toLocaleTimeString()}
 											</span>
 										</summary>
-										<div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+										<div className="border-gray-100 border-t bg-gray-50 px-4 py-3">
 											<div className="mb-2">
 												<span className="mb-1 block font-medium text-gray-500 text-xs">
 													Input
@@ -525,8 +541,8 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 						.filter((m) => m.message?.type === "result")
 						.map((msg, j) => (
 							<div
+								className="border-gray-100 border-t px-4 py-2"
 								key={`result-${j}`}
-								className="border-t border-gray-100 px-4 py-2"
 							>
 								{msg.message && <MessageContent message={msg.message} />}
 							</div>
@@ -543,15 +559,15 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 
 						return (
 							<details
+								className="group border-gray-100 border-t"
 								key={task.taskId}
-								className="group border-t border-gray-100"
 							>
 								<summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2 hover:bg-gray-50">
 									<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
 										&#9654;
 									</span>
 									<span
-										className="font-mono font-medium text-xs"
+										className="font-medium font-mono text-xs"
 										style={{ color: messageColor("task_progress") }}
 									>
 										task
@@ -565,7 +581,7 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 										<StatusBadge status={notificationMsg.status} />
 									)}
 									{!notificationMsg && (
-										<span className="rounded bg-yellow-100 px-1.5 py-0.5 text-yellow-600 text-xs">
+										<span className="rounded bg-yellow-100 px-1.5 py-0.5 text-xs text-yellow-600">
 											running
 										</span>
 									)}
@@ -577,19 +593,15 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 										</span>
 									)}
 								</summary>
-								<div className="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
+								<div className="space-y-2 border-gray-100 border-t bg-gray-50 px-4 py-3">
 									{task.progress.map((msg, j) => (
 										<div key={j}>
-											{msg.message && (
-												<MessageContent message={msg.message} />
-											)}
+											{msg.message && <MessageContent message={msg.message} />}
 										</div>
 									))}
 									{task.notification?.message && (
-										<div className="border-t border-gray-200 pt-2">
-											<MessageContent
-												message={task.notification.message}
-											/>
+										<div className="border-gray-200 border-t pt-2">
+											<MessageContent message={task.notification.message} />
 										</div>
 									)}
 								</div>
@@ -604,7 +616,9 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 
 function RawMessages({
 	messages,
-}: { messages: AgentSessionMessage[] | undefined }) {
+}: {
+	messages: AgentSessionMessage[] | undefined;
+}) {
 	return (
 		<div className="space-y-2">
 			{messages?.map((msg, i) => {

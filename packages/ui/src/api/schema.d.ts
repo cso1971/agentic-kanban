@@ -460,6 +460,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/config/validate-skill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate a skill file
+         * @description Validates the structure and quality of a skill markdown file using the claude CLI
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ValidateSkillBody"];
+                };
+            };
+            responses: {
+                /** @description Validation result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValidateSkillResponse"];
+                    };
+                };
+                /** @description Invalid path or validation error */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description File not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/webhook/gitlab": {
         parameters: {
             query?: never;
@@ -482,7 +543,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["GitLabWebhookPayload"];
+                    "application/json": unknown;
                 };
             };
             responses: {
@@ -492,7 +553,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["WebhookAcceptedResponse"] | components["schemas"]["WebhookIgnoredResponse"];
+                        "application/json": unknown;
                     };
                 };
                 /** @description Unauthorized - invalid or missing X-Gitlab-Token */
@@ -501,7 +562,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["WebhookUnauthorizedResponse"];
+                        "application/json": unknown;
                     };
                 };
             };
@@ -634,150 +695,22 @@ export interface components {
         ConfigFileWriteBody: {
             content: string;
         };
-        WebhookAcceptedResponse: {
-            /** @enum {string} */
-            status: "accepted";
-            matched_rule: {
-                label: string;
-                prompt: string;
-            };
-            jobId: string;
-            agentSessionId: string;
+        ValidateSkillResponse: {
+            path: string;
+            valid: boolean;
+            /** @description Quality/validation score from skill-creator (0 to 1) */
+            score: number;
+            /** @description Evaluation summary from the skill-creator plugin */
+            feedback: string;
+            /** @description Specific improvements suggested by skill-creator */
+            improvements: string[];
         };
-        WebhookIgnoredResponse: {
-            /** @enum {string} */
-            status: "ignored";
-            reason: string;
-        };
-        WebhookUnauthorizedResponse: {
-            /** @enum {string} */
-            error: "Unauthorized";
-        };
-        GitLabWebhookPayload: {
-            object_kind: string;
-            event_type?: string;
-            user?: {
-                id: number;
-                name: string;
-                username: string;
-                avatar_url: string;
-                email?: string;
-            };
-            project?: {
-                id: number;
-                name: string;
-                description: string | null;
-                web_url: string;
-                avatar_url: string | null;
-                git_ssh_url: string;
-                git_http_url: string;
-                namespace: string;
-                visibility_level: number;
-                path_with_namespace: string;
-                default_branch: string;
-                ci_config_path?: string | null;
-                homepage: string;
-                url: string;
-                ssh_url: string;
-                http_url: string;
-            };
-            object_attributes?: {
-                author_id: number;
-                closed_at?: string | null;
-                confidential?: boolean;
-                created_at: string;
-                description: string | null;
-                discussion_locked?: boolean | null;
-                due_date?: string | null;
-                id: number;
-                iid: number;
-                last_edited_at?: string | null;
-                last_edited_by_id?: number | null;
-                milestone_id?: number | null;
-                moved_to_id?: number | null;
-                duplicated_to_id?: number | null;
-                project_id: number;
-                relative_position?: number;
-                state_id?: number;
-                time_estimate?: number;
-                title: string;
-                updated_at: string;
-                updated_by_id?: number | null;
-                type?: string;
-                url?: string;
-                total_time_spent?: number;
-                time_change?: number;
-                human_total_time_spent?: string | null;
-                human_time_change?: string | null;
-                human_time_estimate?: string | null;
-                assignee_ids?: number[];
-                assignee_id?: number | null;
-                labels?: {
-                    id: number;
-                    title: string;
-                    color: string;
-                    project_id: number;
-                    created_at: string;
-                    updated_at: string;
-                    template: boolean;
-                    description: string | null;
-                    type: string;
-                    group_id: number | null;
-                }[];
-                state?: string;
-                severity?: string;
-                action?: string;
-            };
-            labels?: {
-                id: number;
-                title: string;
-                color: string;
-                project_id: number;
-                created_at: string;
-                updated_at: string;
-                template: boolean;
-                description: string | null;
-                type: string;
-                group_id: number | null;
-            }[];
-            changes?: {
-                updated_at?: {
-                    previous: string;
-                    current: string;
-                };
-                labels?: {
-                    previous: {
-                        id: number;
-                        title: string;
-                        color: string;
-                        project_id: number;
-                        created_at: string;
-                        updated_at: string;
-                        template: boolean;
-                        description: string | null;
-                        type: string;
-                        group_id: number | null;
-                    }[];
-                    current: {
-                        id: number;
-                        title: string;
-                        color: string;
-                        project_id: number;
-                        created_at: string;
-                        updated_at: string;
-                        template: boolean;
-                        description: string | null;
-                        type: string;
-                        group_id: number | null;
-                    }[];
-                };
-            };
-            repository?: {
-                name: string;
-                url: string;
-                description: string | null;
-                homepage: string;
-            };
+        ValidateSkillBody: {
+            /**
+             * @description Relative path within config directory
+             * @example skills/my-skill.md
+             */
+            path: string;
         };
     };
     responses: never;

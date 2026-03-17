@@ -1,6 +1,6 @@
 import { store } from "@agentic-kanban/core";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { getAgentSessionArtifactRoute } from "../../agent-sessions";
+import type { getAgentSessionArtifactRoute } from "#routes/agent-sessions";
 
 export const getAgentSessionArtifactHandler: RouteHandler<
 	typeof getAgentSessionArtifactRoute

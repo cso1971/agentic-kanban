@@ -9,8 +9,8 @@ import {
 import { enqueuer } from "@agentic-kanban/queue";
 import type { RouteHandler } from "@hono/zod-openapi";
 import type { IssueEvent } from "gitlab-event-types";
-import type { RouteContext } from "../../index";
-import type { gitlabWebhookRoute } from "../../webhook";
+import type { RouteContext } from "#routes/index";
+import type { gitlabWebhookRoute } from "#routes/webhook";
 
 const log = logger.server;
 

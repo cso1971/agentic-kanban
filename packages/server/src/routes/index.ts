@@ -7,29 +7,31 @@ import {
 	getAgentSessionMessagesHandler,
 	listAgentSessionArtifactsHandler,
 	listAgentSessionsHandler,
-} from "./handlers/agent-sessions";
+} from "#routes/handlers/agent-sessions/index";
 import {
 	createConfigImageHandler,
 	createConfigReadFileHandler,
 	createConfigTreeHandler,
+	createConfigValidateSkillHandler,
 	createConfigWriteFileHandler,
-} from "./handlers/config";
-import { createGitlabWebhookHandler } from "./handlers/webhook";
-import { healthRoute } from "./health";
+} from "#routes/handlers/config/index";
+import { createGitlabWebhookHandler } from "#routes/handlers/webhook/index";
+import { healthRoute } from "#routes/health";
 import {
 	getAgentSessionArtifactRoute,
 	getAgentSessionMessagesRoute,
 	getAgentSessionRoute,
 	listAgentSessionArtifactsRoute,
 	listAgentSessionsRoute,
-} from "./agent-sessions";
+} from "#routes/agent-sessions";
 import {
 	configImageRoute,
 	configReadFileRoute,
 	configTreeRoute,
+	configValidateSkillRoute,
 	configWriteFileRoute,
-} from "./config";
-import { gitlabWebhookRoute } from "./webhook";
+} from "#routes/config";
+import { gitlabWebhookRoute } from "#routes/webhook";
 
 export interface RouteContext {
 	config: AgentConfig;
@@ -62,6 +64,10 @@ export function registerRoutes(app: OpenAPIHono, ctx: RouteContext): void {
 	app.openapi(configReadFileRoute, createConfigReadFileHandler(configDir));
 	app.openapi(configWriteFileRoute, createConfigWriteFileHandler(configDir));
 	app.openapi(configImageRoute, createConfigImageHandler(configDir));
+	app.openapi(
+		configValidateSkillRoute,
+		createConfigValidateSkillHandler(configDir),
+	);
 
 	// Webhook
 	app.openapi(gitlabWebhookRoute, createGitlabWebhookHandler(ctx));

@@ -1,5 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { logger } from "./logger.js";
+import { logger } from "#logger";
 
 export type ParsedMessage =
 	| ParsedAssistantText

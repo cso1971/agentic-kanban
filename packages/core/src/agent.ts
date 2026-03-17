@@ -1,21 +1,27 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { logger } from "./logger";
-import { parseError } from "./parse-error";
-import { parseMessage } from "./parse-message";
+import { promisify } from "node:util";
+import { logger } from "#logger";
+import { parseError } from "#parse-error";
+import { parseMessage } from "#parse-message";
 import {
 	type AgentSessionMessage,
 	appendMessage,
 	completeAgentSession,
 	createAgentSession,
-} from "./store";
+} from "#store";
 
+const execFileAsync = promisify(execFile);
 const log = logger.core;
+
+export type ClaudePlugin = "skill-creator@claude-plugins-official";
 
 export interface AskQuestionOptions {
 	prompt: string;
 	model?: string;
 	systemPrompt?: string;
+	/** Plugins that must be installed before running */
+	requiredPlugins?: ClaudePlugin[];
 }
 
 export interface RunAgentOptions {
@@ -148,9 +154,23 @@ export async function runAgent(
 	});
 }
 
+async function checkPlugins(plugins: ClaudePlugin[]): Promise<void> {
+	const { stdout } = await execFileAsync("claude", ["plugins", "list"]);
+	const missing = plugins.filter((p) => !stdout.includes(p));
+	if (missing.length > 0) {
+		throw new Error(
+			`Required Claude plugin(s) not installed: ${missing.join(", ")}. Install with: ${missing.map((p) => `claude plugin install ${p}`).join(" && ")}`,
+		);
+	}
+}
+
 export async function askQuestion(
 	options: AskQuestionOptions,
 ): Promise<string> {
+	if (options.requiredPlugins?.length) {
+		await checkPlugins(options.requiredPlugins);
+	}
+
 	const args: string[] = ["--print", "--max-turns", "1", options.prompt];
 
 	if (options.model) {

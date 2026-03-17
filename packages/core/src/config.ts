@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { logger } from "./logger";
+import { logger } from "#logger";
 
 export interface WebhookRule {
 	/** GitLab event type, e.g. "issue" */

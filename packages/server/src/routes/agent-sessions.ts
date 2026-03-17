@@ -6,8 +6,8 @@ import {
 	ArtifactContentQuerySchema,
 	ArtifactContentSchema,
 	ArtifactFileSchema,
-} from "../schemas/agent-sessions";
-import { ErrorResponseSchema } from "../schemas/common";
+} from "#schemas/agent-sessions";
+import { ErrorResponseSchema } from "#schemas/common";
 
 export const listAgentSessionsRoute = createRoute({
 	method: "get",
@@ -104,7 +104,8 @@ export const getAgentSessionArtifactRoute = createRoute({
 	path: "/api/agent-sessions/{id}/artifact",
 	tags: ["Agent Sessions"],
 	summary: "Get artifact file content",
-	description: "Returns the content of a specific artifact file by its relative path",
+	description:
+		"Returns the content of a specific artifact file by its relative path",
 	request: {
 		params: AgentSessionIdParamSchema,
 		query: ArtifactContentQuerySchema,

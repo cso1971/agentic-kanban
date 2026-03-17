@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { configWriteFileRoute } from "../../config";
+import type { configWriteFileRoute } from "#routes/config";
 
 export function createConfigWriteFileHandler(configDir: string): RouteHandler<typeof configWriteFileRoute> {
 	return async (c) => {

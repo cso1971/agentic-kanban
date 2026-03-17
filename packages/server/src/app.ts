@@ -1,9 +1,11 @@
-import type { AgentConfig } from "@agentic-kanban/core";
+import { type AgentConfig, logger } from "@agentic-kanban/core";
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
-import { registerBullBoard } from "./bull-board";
-import { registerRoutes } from "./routes";
+import { registerBullBoard } from "#bull-board";
+import { registerRoutes } from "#routes/index";
+
+const log = logger.server;
 
 interface AppOptions {
 	config: AgentConfig;
@@ -13,6 +15,22 @@ interface AppOptions {
 
 export function createApp(options: AppOptions): OpenAPIHono {
 	const app = new OpenAPIHono();
+
+	// Request logging middleware
+	app.use("*", async (c, next) => {
+		const start = performance.now();
+		const method = c.req.method;
+		const path = c.req.path;
+
+		log.info`--> ${method} ${path}`;
+
+		await next();
+
+		const elapsed = (performance.now() - start).toFixed(1);
+		const status = c.res.status;
+
+		log.info`<-- ${method} ${path} ${status} ${elapsed}ms`;
+	});
 
 	// CORS middleware
 	app.use(

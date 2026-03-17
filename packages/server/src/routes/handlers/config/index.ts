@@ -1,4 +1,5 @@
-export { createConfigTreeHandler } from "./tree";
-export { createConfigReadFileHandler } from "./read-file";
-export { createConfigWriteFileHandler } from "./write-file";
-export { createConfigImageHandler } from "./image";
+export { createConfigTreeHandler } from "#routes/handlers/config/tree";
+export { createConfigReadFileHandler } from "#routes/handlers/config/read-file";
+export { createConfigWriteFileHandler } from "#routes/handlers/config/write-file";
+export { createConfigImageHandler } from "#routes/handlers/config/image";
+export { createConfigValidateSkillHandler } from "#routes/handlers/config/validate-skill";
