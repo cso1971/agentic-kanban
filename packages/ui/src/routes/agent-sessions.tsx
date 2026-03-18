@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { $api, type AgentSession } from "#api/client";
+import { $api, type AgentSession } from "#api/client.ts";
 import type { components } from "#api/schema";
 
 type ParsedMessage = components["schemas"]["ParsedMessage"];

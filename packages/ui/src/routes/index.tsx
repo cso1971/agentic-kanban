@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { $api } from "#api/client";
+import { $api } from "#api/client.ts";
 
 export function Dashboard() {
 	const { data: sessions, isLoading } = $api.useQuery(

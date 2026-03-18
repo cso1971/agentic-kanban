@@ -11,24 +11,18 @@ You are breaking down a high-level requirement (epic) into user stories using th
 
 ## GitLab Configuration
 
-Use `glab` with the host from the `GITLAB_HOST` environment variable. Each agent has its own GitLab token in the environment:
+Use the `/glab` skill for all GitLab CLI operations. Each agent has its own GitLab token in the environment:
 
 - **Coordinator**: `AGENT_COORDINATOR_TOKEN`
 - **Product Analyst**: `AGENT_PRODUCT_ANALYST_TOKEN`
 - **IT Architect**: `AGENT_IT_ARCHITECT_TOKEN`
 - **QA Strategist**: `AGENT_QA_STRATEGIST_TOKEN`
 
-Authenticate with the coordinator token by default:
-
-```
-glab auth login --token $AGENT_COORDINATOR_TOKEN --hostname $GITLAB_HOST
-```
-
-When a specific teammate needs to comment on the epic, use their corresponding token so the comment is attributed to the correct agent.
+Authenticate with the coordinator token by default. When a specific teammate needs to comment on the epic, use their corresponding token so the comment is attributed to the correct agent.
 
 ## Instructions
 
-1. Ensure you have the glab (gitlab cli) installed and authenticate using the GitLab configuration above.
+1. Authenticate using the `/glab` skill with `$AGENT_COORDINATOR_TOKEN` and `$GITLAB_HOST`.
 
 1. If not already cloned, clone the repository containing the issue using `glab repo clone {{PROJECT_ID}}`, ensure default branch is clean.
 
@@ -45,7 +39,7 @@ When a specific teammate needs to comment on the epic, use their corresponding t
 
 1. Synthesize the council's output into a coherent set of user stories.
 
-1. Create the user stories as new issues in the project using glab. Label each story with `story` and link it to the epic issue #{{ISSUE_IID}} using `glab issue note {{ISSUE_IID}} --message "Related: #<new_issue_iid>"` or the appropriate glab linking mechanism.
+1. Create the user stories as new issues in the project using glab. Label each story with `story` and `Refinement` and link it to the epic issue #{{ISSUE_IID}} using `glab issue note {{ISSUE_IID}} --message "Related: #<new_issue_iid>"` or the appropriate glab linking mechanism.
 
 1. For each council agent (Product Analyst, IT Architect, QA Strategist), add a comment on the epic issue {{ISSUE_IID}} summarizing that agent's perspective and recommendations. Use each agent's own token (`AGENT_PRODUCT_ANALYST_TOKEN`, `AGENT_IT_ARCHITECT_TOKEN`, `AGENT_QA_STRATEGIST_TOKEN`) so the comment is attributed to the correct GitLab user.
 

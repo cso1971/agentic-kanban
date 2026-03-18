@@ -6,8 +6,8 @@ import {
 	ArtifactContentQuerySchema,
 	ArtifactContentSchema,
 	ArtifactFileSchema,
-} from "#schemas/agent-sessions";
-import { ErrorResponseSchema } from "#schemas/common";
+} from "#schemas/agent-sessions.ts";
+import { ErrorResponseSchema } from "#schemas/common.ts";
 
 export const listAgentSessionsRoute = createRoute({
 	method: "get",

@@ -2,15 +2,15 @@ export {
 	createGitLabClient,
 	type GitLabClient,
 	type GitLabConfig,
-} from "#client";
+} from "#client.ts";
 export {
 	type AgentConfig,
 	type SetupConfig,
 	type SetupResult,
 	setupGitLabProject,
-} from "#config";
+} from "#config.ts";
 export {
 	type GetRootTokenOptions,
 	type GetRootTokenResult,
 	getRootAccessToken,
-} from "#local";
+} from "#local.ts";

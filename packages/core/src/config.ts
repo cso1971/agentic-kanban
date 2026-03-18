@@ -1,14 +1,16 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { logger } from "#logger";
+import { logger } from "#logger.ts";
 
 export interface WebhookRule {
-	/** GitLab event type, e.g. "issue" */
+	/** GitLab event type, e.g. "issue", "note" */
 	event: string;
-	/** Action within the event, e.g. "update" */
+	/** Action within the event, e.g. "update", "create" */
 	action?: string;
-	/** Label that must be present or just added */
-	label: string;
+	/** Label that must be present or just added (for issue events) */
+	label?: string;
+	/** Noteable type filter for note events, e.g. "MergeRequest" */
+	noteable_type?: string;
 	/** Path to the prompt file (relative to config file or absolute) */
 	prompt: string;
 }

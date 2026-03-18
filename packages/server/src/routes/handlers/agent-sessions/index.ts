@@ -1,5 +1,5 @@
-export { getAgentSessionHandler } from "#routes/handlers/agent-sessions/get";
-export { getAgentSessionArtifactHandler } from "#routes/handlers/agent-sessions/get-artifact";
-export { getAgentSessionMessagesHandler } from "#routes/handlers/agent-sessions/get-messages";
-export { listAgentSessionArtifactsHandler } from "#routes/handlers/agent-sessions/list-artifacts";
-export { listAgentSessionsHandler } from "#routes/handlers/agent-sessions/list";
+export { getAgentSessionHandler } from "#routes/handlers/agent-sessions/get.ts";
+export { getAgentSessionArtifactHandler } from "#routes/handlers/agent-sessions/get-artifact.ts";
+export { getAgentSessionMessagesHandler } from "#routes/handlers/agent-sessions/get-messages.ts";
+export { listAgentSessionArtifactsHandler } from "#routes/handlers/agent-sessions/list-artifacts.ts";
+export { listAgentSessionsHandler } from "#routes/handlers/agent-sessions/list.ts";

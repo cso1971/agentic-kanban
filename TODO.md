@@ -2,6 +2,7 @@
 - delete the single sessions
 - resume the sessions with the session id
 - code discovery with sonar + lsp (install plugins?)
+- how to use glab skill within the worker? should be in working directory
 - show total cost of sessions
 - add sessionid to route
 - add skill creator to config to test the skills

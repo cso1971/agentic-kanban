@@ -2,8 +2,8 @@ import { type AgentConfig, logger } from "@agentic-kanban/core";
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
-import { registerBullBoard } from "#bull-board";
-import { registerRoutes } from "#routes/index";
+import { registerBullBoard } from "#bull-board.ts";
+import { registerRoutes } from "#routes/index.ts";
 
 const log = logger.server;
 

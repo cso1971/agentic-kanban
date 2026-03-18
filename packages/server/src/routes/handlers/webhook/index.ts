@@ -1,1 +1,1 @@
-export { createGitlabWebhookHandler } from "#routes/handlers/webhook/gitlab";
+export { createGitlabWebhookHandler } from "#routes/handlers/webhook/gitlab.ts";

@@ -1,7 +1,7 @@
 import { readdir, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { configTreeRoute } from "#routes/config";
+import type { configTreeRoute } from "#routes/config.ts";
 
 interface TreeNode {
 	name: string;

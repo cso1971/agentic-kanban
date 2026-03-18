@@ -1,5 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { logger } from "#logger";
+import { logger } from "#logger.ts";
 
 export type ParsedMessage =
 	| ParsedAssistantText
@@ -67,6 +67,24 @@ export interface ParsedUnknown {
 	type: "unknown";
 	sdkType: string;
 	raw: SDKMessage;
+}
+
+/**
+ * Extracts the human-readable text portion from a parsed message.
+ * Returns an empty string for message types that have no meaningful text.
+ */
+export function extractText(message: ParsedMessage | undefined): string {
+	if (!message) return "";
+	switch (message.type) {
+		case "assistant_text":
+			return message.text;
+		case "result":
+			return message.result ?? message.error ?? "";
+		case "task_notification":
+			return message.summary;
+		default:
+			return "";
+	}
 }
 
 export function parseMessage(

@@ -3,10 +3,10 @@ import {
 	createRoute,
 	createRouter,
 } from "@tanstack/react-router";
-import { RootLayout } from "#routes/__root";
-import { Dashboard } from "#routes/index";
-import { AgentSessionsPage } from "#routes/agent-sessions";
-import { ConfigPage } from "#routes/config";
+import { RootLayout } from "#routes/__root.tsx";
+import { Dashboard } from "#routes/index.tsx";
+import { AgentSessionsPage } from "#routes/agent-sessions.tsx";
+import { ConfigPage } from "#routes/config.tsx";
 
 const rootRoute = createRootRoute({
 	component: RootLayout,

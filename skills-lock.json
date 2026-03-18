@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "bullmq-specialist": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "dfcf7f65fc8bf60081785acb0300a386d120dfe578bf8041d4209c8b9beb2d15"
+    },
+    "bun": {
+      "source": "bun.sh",
+      "sourceType": "well-known",
+      "computedHash": "4ea8c4683e2652f03f7aaec21811153e8491fa184439bd30238b27895c12cb4a"
+    },
+    "glab": {
+      "source": "henricook/claude-glab-skill",
+      "sourceType": "github",
+      "computedHash": "115f4052ea6a93436e302487edab7d94d8fbac34c04f873054ed982e0780fbdd"
+    },
+    "pnpm": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "318f9fca2441a3e06fedc336e195dd18be5dbe901064e4fa71b76b40b096ab3a"
+    }
+  }
+}

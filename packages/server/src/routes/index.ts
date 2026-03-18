@@ -7,31 +7,31 @@ import {
 	getAgentSessionMessagesHandler,
 	listAgentSessionArtifactsHandler,
 	listAgentSessionsHandler,
-} from "#routes/handlers/agent-sessions/index";
+} from "#routes/handlers/agent-sessions/index.ts";
 import {
 	createConfigImageHandler,
 	createConfigReadFileHandler,
 	createConfigTreeHandler,
 	createConfigValidateSkillHandler,
 	createConfigWriteFileHandler,
-} from "#routes/handlers/config/index";
-import { createGitlabWebhookHandler } from "#routes/handlers/webhook/index";
-import { healthRoute } from "#routes/health";
+} from "#routes/handlers/config/index.ts";
+import { createGitlabWebhookHandler } from "#routes/handlers/webhook/index.ts";
+import { healthRoute } from "#routes/health.ts";
 import {
 	getAgentSessionArtifactRoute,
 	getAgentSessionMessagesRoute,
 	getAgentSessionRoute,
 	listAgentSessionArtifactsRoute,
 	listAgentSessionsRoute,
-} from "#routes/agent-sessions";
+} from "#routes/agent-sessions.ts";
 import {
 	configImageRoute,
 	configReadFileRoute,
 	configTreeRoute,
 	configValidateSkillRoute,
 	configWriteFileRoute,
-} from "#routes/config";
-import { gitlabWebhookRoute } from "#routes/webhook";
+} from "#routes/config.ts";
+import { gitlabWebhookRoute } from "#routes/webhook.ts";
 
 export interface RouteContext {
 	config: AgentConfig;

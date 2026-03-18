@@ -1,24 +1,25 @@
 import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
-import { logger } from "#logger";
-import { parseError } from "#parse-error";
-import { parseMessage } from "#parse-message";
+import { logger } from "#logger.ts";
+import { parseError } from "#parse-error.ts";
+import { extractText, parseMessage } from "#parse-message.ts";
 import {
 	type AgentSessionMessage,
 	appendMessage,
 	completeAgentSession,
 	createAgentSession,
-} from "#store";
+} from "#store.ts";
 
 const execFileAsync = promisify(execFile);
 const log = logger.core;
 
+export type Models = "sonnet" | "opus" | "haiku";
 export type ClaudePlugin = "skill-creator@claude-plugins-official";
 
 export interface AskQuestionOptions {
 	prompt: string;
-	model?: string;
+	model?: Models;
 	systemPrompt?: string;
 	/** Plugins that must be installed before running */
 	requiredPlugins?: ClaudePlugin[];
@@ -27,7 +28,7 @@ export interface AskQuestionOptions {
 export interface RunAgentOptions {
 	prompt: string;
 	cwd?: string;
-	model?: string;
+	model?: Models;
 	/** Pre-generated agent session ID */
 	agentSessionId?: string;
 	/** Associated job ID for queue correlation */
@@ -81,6 +82,7 @@ export async function runAgent(
 		const child = spawn("claude", args, {
 			cwd,
 			stdio: ["ignore", "pipe", "pipe"],
+			// TODO: check this env, dangerous
 			env: { ...process.env, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1" },
 		});
 
@@ -88,11 +90,13 @@ export async function runAgent(
 
 		child.stdout.on("data", async (chunk: Buffer) => {
 			const raw = chunk.toString();
-			fullOutput += raw;
 
 			const lines = raw.split("\n").filter((line) => line.trim());
 			for (const json of lines) {
 				const message = parseMessage(json);
+				const text = extractText(message);
+
+				if (text) fullOutput += text;
 
 				const msg: AgentSessionMessage = {
 					timestamp: new Date().toISOString(),

@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import type { ParsedMessage } from "#parse-message";
+import type { ParsedMessage } from "#parse-message.ts";
 
 export interface AgentSession {
 	id: string;
@@ -26,7 +26,7 @@ export interface AgentSessionMessage {
 	raw: unknown;
 }
 
-const DEFAULT_STORE_DIR = ".agent-sessions";
+const DEFAULT_STORE_DIR = "../../.agent-sessions";
 
 function getStoreDir(): string {
 	return process.env.AGENT_STORE_DIR ?? join(process.cwd(), DEFAULT_STORE_DIR);

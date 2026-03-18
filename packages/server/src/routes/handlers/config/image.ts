@@ -1,7 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { configImageRoute } from "#routes/config";
+import type { configImageRoute } from "#routes/config.ts";
 
 function getImageContentType(ext: string): string {
 	const types: Record<string, string> = {

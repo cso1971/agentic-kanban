@@ -6,11 +6,11 @@ import {
 	store,
 	type WebhookRule,
 } from "@agentic-kanban/core";
-import { enqueuer } from "@agentic-kanban/queue";
+import { type EnqueuePayload, enqueuer } from "@agentic-kanban/queue";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { IssueEvent } from "gitlab-event-types";
-import type { RouteContext } from "#routes/index";
-import type { gitlabWebhookRoute } from "#routes/webhook";
+import type { CommentEvent, IssueEvent } from "gitlab-event-types";
+import type { RouteContext } from "#routes/index.ts";
+import type { gitlabWebhookRoute } from "#routes/webhook.ts";
 
 const log = logger.server;
 
@@ -25,63 +25,131 @@ export function createGitlabWebhookHandler(
 			}
 		}
 
-		// const rawPayload = await c.req.json();
-		// log.info`Webhook payload: ${JSON.stringify(rawPayload, null, 2)}`;
+		const payload = c.req.valid("json") as unknown as
+			| IssueEvent
+			| CommentEvent;
 
-		const payload = c.req.valid("json") as unknown as IssueEvent;
+		const eventType = payload.object_kind;
 
-		const addedLabels = getAddedLabels(payload);
-
-		const rule = matchWebhookToPrompt(payload, addedLabels, ctx.config);
-
-		if (!rule) {
-			log.info`No matching rule for added labels ${addedLabels} with available ${ctx.config.rules.map((r) => r.label)}`;
-
-			return c.json(
-				{ status: "ignored" as const, reason: "no matching rule" },
-				200,
-			);
+		if (eventType === "note") {
+			return handleNoteEvent(c, payload as CommentEvent, ctx);
 		}
 
-		const agentSessionId = randomUUID();
-		const workingDir = await store.workingDirectory(agentSessionId);
-		const configDir = dirname(resolve(ctx.configPath));
-		const promptPath = resolve(configDir, rule.prompt);
-
-		log.info`Matched rule: label="${rule.label}" -> prompt="${rule.prompt}"`;
-		log.info`Working directory: ${workingDir}`;
-
-		const jobId = await enqueuer.enqueueAgentJob(
-			agentSessionId,
-			workingDir,
-			promptPath,
-			{
-				projectId: String(payload.project?.id ?? ""),
-				issueId: String(payload.object_attributes?.iid ?? ""),
-				issueTitle: payload.object_attributes?.title ?? "",
-				issueDescription: payload.object_attributes?.description ?? "",
-			},
-		);
-
-		log.info`Queued job ${jobId} for rule="${rule.label}"`;
-
-		return c.json(
-			{
-				status: "accepted" as const,
-				matched_rule: { label: rule.label, prompt: rule.prompt },
-				jobId,
-				agentSessionId,
-			},
-			200,
-		);
+		return handleIssueEvent(c, payload as IssueEvent, ctx);
 	};
 }
 
+async function handleIssueEvent(
+	c: Parameters<RouteHandler<typeof gitlabWebhookRoute>>[0],
+	payload: IssueEvent,
+	ctx: RouteContext,
+) {
+	const addedLabels = getAddedLabels(payload);
+	const rule = matchIssueRule(payload, addedLabels, ctx.config);
+
+	if (!rule) {
+		log.info`No matching rule for added labels ${addedLabels}`;
+		return c.json(
+			{ status: "ignored" as const, reason: "no matching rule" },
+			200,
+		);
+	}
+
+	const agentSessionId = randomUUID();
+	const workingDir = await store.workingDirectory(agentSessionId);
+	const configDir = dirname(resolve(ctx.configPath));
+	const promptPath = resolve(configDir, rule.prompt);
+
+	log.info`Matched rule: label="${rule.label}" -> prompt="${rule.prompt}"`;
+
+	const jobId = await enqueuer.enqueueAgentJob(
+		agentSessionId,
+		workingDir,
+		promptPath,
+		{
+			projectId: String(payload.project?.id ?? ""),
+			issueId: String(payload.object_attributes?.iid ?? ""),
+			issueTitle: payload.object_attributes?.title ?? "",
+			issueDescription: payload.object_attributes?.description ?? "",
+		},
+	);
+
+	log.info`Queued job ${jobId} for rule="${rule.label}"`;
+
+	return c.json(
+		{
+			status: "accepted" as const,
+			matched_rule: { label: rule.label, prompt: rule.prompt },
+			jobId,
+			agentSessionId,
+		},
+		200,
+	);
+}
+
+async function handleNoteEvent(
+	c: Parameters<RouteHandler<typeof gitlabWebhookRoute>>[0],
+	payload: CommentEvent,
+	ctx: RouteContext,
+) {
+	const noteAttrs = payload.object_attributes;
+	const rule = matchNoteRule(payload, ctx.config);
+
+	if (!rule) {
+		log.info`No matching note rule for noteable_type="${noteAttrs.noteable_type}"`;
+		return c.json(
+			{ status: "ignored" as const, reason: "no matching rule" },
+			200,
+		);
+	}
+
+	const mr = payload.merge_request;
+	if (!mr) {
+		log.info`Note event matched but no merge_request data present`;
+		return c.json(
+			{ status: "ignored" as const, reason: "no merge request context" },
+			200,
+		);
+	}
+
+	const agentSessionId = randomUUID();
+	const workingDir = await store.workingDirectory(agentSessionId);
+	const configDir = dirname(resolve(ctx.configPath));
+	const promptPath = resolve(configDir, rule.prompt);
+
+	const enqueuePayload: EnqueuePayload = {
+		projectId: String(payload.project?.id ?? ""),
+		mrIid: String(mr.iid ?? ""),
+		mrTitle: mr.title ?? "",
+		sourceBranch: mr.source_branch ?? "",
+		reviewerName: payload.user?.name ?? payload.user?.username ?? "",
+		discussionId: (noteAttrs as unknown as Record<string, unknown>).discussion_id as string ?? "",
+		reviewComment: noteAttrs.note ?? "",
+	};
+
+	log.info`Matched note rule -> prompt="${rule.prompt}" on MR !${enqueuePayload.mrIid}`;
+
+	const jobId = await enqueuer.enqueueAgentJob(
+		agentSessionId,
+		workingDir,
+		promptPath,
+		enqueuePayload,
+	);
+
+	log.info`Queued job ${jobId} for note on MR !${enqueuePayload.mrIid}`;
+
+	return c.json(
+		{
+			status: "accepted" as const,
+			matched_rule: { prompt: rule.prompt },
+			jobId,
+			agentSessionId,
+		},
+		200,
+	);
+}
+
 function getAddedLabels(payload: IssueEvent): string[] {
-  console.log(payload);
-  
-	console.log(payload.changes.labels);
-  
 	const previousLabels = new Set(
 		(payload.changes?.labels?.previous ?? []).map((l) => l.title),
 	);
@@ -90,13 +158,10 @@ function getAddedLabels(payload: IssueEvent): string[] {
 		(l) => l.title,
 	);
 
-	console.log("Previous labels:", previousLabels);
-	console.log("Current labels:", currentLabels);
-
 	return currentLabels.filter((title) => !previousLabels.has(title));
 }
 
-function matchWebhookToPrompt(
+function matchIssueRule(
 	payload: IssueEvent,
 	addedLabels: string[],
 	config: AgentConfig,
@@ -107,10 +172,30 @@ function matchWebhookToPrompt(
 	for (const rule of config.rules) {
 		if (rule.event !== eventType) continue;
 		if (rule.action && rule.action !== action) continue;
-
-		if (addedLabels.includes(rule.label)) {
+		if (rule.label && addedLabels.includes(rule.label)) {
 			return rule;
 		}
+	}
+
+	return null;
+}
+
+function matchNoteRule(
+	payload: CommentEvent,
+	config: AgentConfig,
+): WebhookRule | null {
+	const noteAttrs = payload.object_attributes;
+
+	for (const rule of config.rules) {
+		if (rule.event !== "note") continue;
+		if (rule.action && rule.action !== noteAttrs.action) continue;
+		if (
+			rule.noteable_type &&
+			rule.noteable_type !== noteAttrs.noteable_type
+		) {
+			continue;
+		}
+		return rule;
 	}
 
 	return null;

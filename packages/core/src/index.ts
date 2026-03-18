@@ -5,18 +5,18 @@ export {
 	type ClaudePlugin,
 	type RunAgentOptions,
 	type RunAgentResult,
-} from "#agent";
+} from "#agent.ts";
 export {
 	type AgentConfig,
 	loadConfig,
 	type WebhookRule,
-} from "#config";
-export { env } from "#env";
-export { logger } from "#logger";
-export { loadPrompt } from "#prompt";
+} from "#config.ts";
+export { env } from "#env.ts";
+export { logger } from "#logger.ts";
+export { loadPrompt } from "#prompt.ts";
 export {
 	type AgentSession,
 	type AgentSessionMessage,
 	type ArtifactFile,
 	store,
-} from "#store";
+} from "#store.ts";

@@ -1,16 +1,16 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { ErrorResponseSchema } from "#schemas/common";
+import { ErrorResponseSchema } from "#schemas/common.ts";
 import {
 	ConfigFileQuerySchema,
 	ConfigFileResponseSchema,
 	ConfigFileWriteBodySchema,
 	ConfigFileWriteResponseSchema,
 	ConfigTreeResponseSchema,
-} from "#schemas/config";
+} from "#schemas/config.ts";
 import {
 	ValidateSkillBodySchema,
 	ValidateSkillResponseSchema,
-} from "#schemas/validate-skill";
+} from "#schemas/validate-skill.ts";
 
 export const configTreeRoute = createRoute({
 	method: "get",

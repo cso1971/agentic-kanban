@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
-import { getRedisUrl } from "#connection";
-import type { JobData, JobResult } from "#types";
+import { getRedisUrl } from "#connection.ts";
+import type { JobData, JobResult } from "#types.ts";
 
 export const AGENT_QUEUE_NAME = "agent-jobs";
 

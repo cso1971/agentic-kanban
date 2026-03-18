@@ -2,9 +2,9 @@
 import "bun";
 import { Command } from "commander";
 
-import { registerGitlabCommand } from "#commands/gitlab";
-import { registerLocalCommand } from "#commands/local";
-import { registerRunCommand } from "#commands/run";
+import { registerGitlabCommand } from "#commands/gitlab.ts";
+import { registerLocalCommand } from "#commands/local.ts";
+import { registerRunCommand } from "#commands/run.ts";
 
 const program = new Command();
 

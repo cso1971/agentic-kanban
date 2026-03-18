@@ -5,7 +5,7 @@ import { Worker } from "bullmq";
 
 const log = logger.queue;
 
-const concurrency = parseInt(process.env.WORKER_CONCURRENCY ?? "1", 10);
+const concurrency = parseInt(process.env.WORKER_CONCURRENCY ?? "3", 10);
 
 function isAgentJob(data: JobData): data is AgentJobData {
 	return data.type === "agent";

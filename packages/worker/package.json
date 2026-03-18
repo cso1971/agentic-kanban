@@ -18,7 +18,8 @@
 	"main": "src/worker.ts",
 	"types": "src/worker.ts",
 	"scripts": {
-		"dev": "bun run --cwd ../../ packages/worker/src/worker.ts",
+		"dev": "bun run --env-file=../../.env --watch src/worker.ts",
+		"start": "bun run --env-file=../../.env src/worker.ts",
 		"test": "bun test --pass-with-no-tests",
 		"typecheck": "tsgo --noEmit"
 	},

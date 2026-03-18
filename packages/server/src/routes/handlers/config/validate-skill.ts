@@ -2,7 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { agent, logger } from "@agentic-kanban/core";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { configValidateSkillRoute } from "#routes/config";
+import type { configValidateSkillRoute } from "#routes/config.ts";
 
 const log = logger.server;
 

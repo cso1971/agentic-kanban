@@ -19,7 +19,7 @@
 		"cli": "src/cli.ts"
 	},
 	"scripts": {
-		"cli": "bun run --cwd ../../ packages/cli/src/cli.ts",
+		"cli": "bun run --env-file=../../.env src/cli.ts",
 		"test": "bun test --pass-with-no-tests",
 		"typecheck": "tsgo --noEmit"
 	},

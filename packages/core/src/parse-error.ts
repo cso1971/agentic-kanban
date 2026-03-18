@@ -1,5 +1,5 @@
 import type { SDKResultError } from "@anthropic-ai/claude-agent-sdk";
-import { logger } from "#logger";
+import { logger } from "#logger.ts";
 
 export type ParsedError = ParsedUnknown;
 

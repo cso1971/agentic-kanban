@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseMessage } from "#parse-message";
+import { parseMessage } from "#parse-message.ts";
 
 describe("parseMessage", () => {
 	test("parses system init message", () => {

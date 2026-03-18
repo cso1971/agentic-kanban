@@ -1,7 +1,7 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { configReadFileRoute } from "#routes/config";
+import type { configReadFileRoute } from "#routes/config.ts";
 
 const TEXT_EXTENSIONS = new Set([".md", ".json", ".txt", ".yaml", ".yml"]);
 

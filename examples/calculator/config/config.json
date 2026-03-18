@@ -5,6 +5,24 @@
 			"action": "update",
 			"label": "Breakdown",
 			"prompt": "./triggers/breakdown.md"
+		},
+		{
+			"event": "issue",
+			"action": "update",
+			"label": "Ready",
+			"prompt": "./triggers/ready.md"
+		},
+		{
+			"event": "issue",
+			"action": "update",
+			"label": "Planned",
+			"prompt": "./triggers/planned.md"
+		},
+		{
+			"event": "note",
+			"action": "create",
+			"noteable_type": "MergeRequest",
+			"prompt": "./triggers/review.md"
 		}
 	]
 }

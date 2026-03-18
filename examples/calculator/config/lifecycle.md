@@ -19,6 +19,9 @@ Items fully refined and ready to be picked up for implementation.
 ### Planned
 Items assigned and scheduled for implementation.
 
+### Review
+Merge requests under code review, awaiting approval or feedback resolution.
+
 ### Test
 Items implemented and undergoing testing and validation.
 
@@ -28,9 +31,9 @@ Items that are completed, tested, and accepted.
 ## Work Item States
 
 ```
-┌──────────────┐    ┌───────────┐    ┌────────────┐    ┌───────┐    ┌─────────┐    ┌──────┐    ┌──────┐
-│ Requirements │ -> │ Breakdown │ -> │ Refinement │ -> │ Ready │ -> │ Planned │ -> │ Test │ -> │ Done │
-└──────────────┘    └───────────┘    └────────────┘    └───────┘    └─────────┘    └──────┘    └──────┘
+┌──────────────┐    ┌───────────┐    ┌────────────┐    ┌───────┐    ┌─────────┐    ┌────────┐    ┌──────┐    ┌──────┐
+│ Requirements │ -> │ Breakdown │ -> │ Refinement │ -> │ Ready │ -> │ Planned │ -> │ Review │ -> │ Test │ -> │ Done │
+└──────────────┘    └───────────┘    └────────────┘    └───────┘    └─────────┘    └────────┘    └──────┘    └──────┘
 ```
 
 ## Transitions
@@ -41,13 +44,16 @@ Items that are completed, tested, and accepted.
 | Breakdown    | Refinement  | Stories created from breakdown        |
 | Refinement   | Ready       | Acceptance criteria defined           |
 | Ready        | Planned     | Item scheduled for implementation    |
-| Planned      | Test        | Implementation completed             |
+| Planned      | Review      | MR created, awaiting code review     |
+| Review       | Test        | Code review approved                 |
+| Review       | Planned     | Review feedback requires rework      |
 | Test         | Done        | Testing passed and accepted          |
-| Test         | Planned     | Issues found, rework needed          |
+| Test         | Review      | Issues found, rework needed          |
 
 ## WIP Limits
 
 - **Planned**: Max 1 item per agent
+- **Review**: Max 3 items total
 - **Test**: Max 3 items total
 
 ## Labels
