@@ -35,6 +35,24 @@ function filterTriggerFiles(nodes: TreeNode[]): string[] {
 	return collectMdFiles(nodes);
 }
 
+/** Extract folder names from a specific top-level directory in the tree */
+function extractFolderEntries(
+	nodes: TreeNode[],
+	dirName: string,
+): { name: string; promptPath: string }[] {
+	for (const node of nodes) {
+		if (node.type === "directory" && node.name === dirName && node.children) {
+			return node.children
+				.filter((child) => child.type === "directory")
+				.map((child) => ({
+					name: child.name,
+					promptPath: `${child.path}/agent.md`,
+				}));
+		}
+	}
+	return [];
+}
+
 const TEMPLATE_VARS = [
 	{ key: "projectId", label: "Project ID", placeholder: "e.g. 1" },
 	{ key: "issueId", label: "Issue IID", placeholder: "e.g. 42" },
@@ -64,7 +82,7 @@ const TEMPLATE_VARS = [
 	},
 ] as const;
 
-type PromptMode = "file" | "text";
+type PromptMode = "file" | "text" | "coordinator";
 
 export function EnqueuePage() {
 	const navigate = useNavigate();
@@ -77,6 +95,11 @@ export function EnqueuePage() {
 		jobId: string;
 		agentSessionId: string;
 	} | null>(null);
+
+	// Coordinator mode state
+	const [selectedCoordinator, setSelectedCoordinator] = useState("");
+	const [selectedTeammates, setSelectedTeammates] = useState<string[]>([]);
+	const [topic, setTopic] = useState("");
 
 	const { data: treeData, isLoading: treeLoading } = $api.useQuery(
 		"get",
@@ -95,6 +118,16 @@ export function EnqueuePage() {
 	const triggerFiles = useMemo(() => {
 		if (!treeData?.tree) return [];
 		return filterTriggerFiles(treeData.tree as TreeNode[]);
+	}, [treeData]);
+
+	const coordinators = useMemo(() => {
+		if (!treeData?.tree) return [];
+		return extractFolderEntries(treeData.tree as TreeNode[], "coordinators");
+	}, [treeData]);
+
+	const agents = useMemo(() => {
+		if (!treeData?.tree) return [];
+		return extractFolderEntries(treeData.tree as TreeNode[], "agents");
 	}, [treeData]);
 
 	// Detect which template variables are used in the selected prompt
@@ -131,8 +164,31 @@ export function EnqueuePage() {
 		setVars((prev) => ({ ...prev, [key]: value }));
 	}, []);
 
+	const toggleTeammate = useCallback((agentName: string) => {
+		setSelectedTeammates((prev) =>
+			prev.includes(agentName)
+				? prev.filter((n) => n !== agentName)
+				: [...prev, agentName],
+		);
+	}, []);
+
+	const buildTeammatesTable = useCallback(() => {
+		if (selectedTeammates.length === 0) return "";
+		const header = "| Role | Spawn Prompt |\n|------|-------------|";
+		const rows = selectedTeammates.map(
+			(name) => `| ${name} | agents/${name}/agent.md |`,
+		);
+		return `${header}\n${rows.join("\n")}`;
+	}, [selectedTeammates]);
+
 	const canSubmit =
-		mode === "text" ? promptText.trim().length > 0 : !!selectedPrompt;
+		mode === "text"
+			? promptText.trim().length > 0
+			: mode === "coordinator"
+				? !!selectedCoordinator &&
+					selectedTeammates.length > 0 &&
+					topic.trim().length > 0
+				: !!selectedPrompt;
 
 	const handleSubmit = useCallback(async () => {
 		if (!canSubmit) return;
@@ -140,24 +196,41 @@ export function EnqueuePage() {
 		const body =
 			mode === "text"
 				? { promptText: promptText.trim(), projectId: "" }
-				: {
-						promptPath: selectedPrompt,
-						projectId: vars.projectId ?? "",
-						issueId: vars.issueId || undefined,
-						issueTitle: vars.issueTitle || undefined,
-						issueDescription: vars.issueDescription || undefined,
-						mrIid: vars.mrIid || undefined,
-						mrTitle: vars.mrTitle || undefined,
-						sourceBranch: vars.sourceBranch || undefined,
-						reviewerName: vars.reviewerName || undefined,
-						discussionId: vars.discussionId || undefined,
-						reviewComment: vars.reviewComment || undefined,
-					};
+				: mode === "coordinator"
+					? {
+							promptPath: selectedCoordinator,
+							projectId: "",
+							issueTitle: topic.trim(),
+							teammatesTable: buildTeammatesTable(),
+						}
+					: {
+							promptPath: selectedPrompt,
+							projectId: vars.projectId ?? "",
+							issueId: vars.issueId || undefined,
+							issueTitle: vars.issueTitle || undefined,
+							issueDescription: vars.issueDescription || undefined,
+							mrIid: vars.mrIid || undefined,
+							mrTitle: vars.mrTitle || undefined,
+							sourceBranch: vars.sourceBranch || undefined,
+							reviewerName: vars.reviewerName || undefined,
+							discussionId: vars.discussionId || undefined,
+							reviewComment: vars.reviewComment || undefined,
+						};
 
 		const res = await enqueueMutation.mutateAsync({ body });
 
 		setResult(res as { status: string; jobId: string; agentSessionId: string });
-	}, [canSubmit, mode, promptText, selectedPrompt, vars, enqueueMutation]);
+	}, [
+		canSubmit,
+		mode,
+		promptText,
+		selectedPrompt,
+		selectedCoordinator,
+		topic,
+		buildTeammatesTable,
+		vars,
+		enqueueMutation,
+	]);
 
 	return (
 		<div className="mx-auto max-w-3xl p-6">
@@ -196,6 +269,20 @@ export function EnqueuePage() {
 					>
 						Free Text Prompt
 					</button>
+					<button
+						className={`flex-1 rounded-md px-4 py-2 font-medium text-sm transition-colors ${
+							mode === "coordinator"
+								? "bg-white text-gray-900 shadow-sm"
+								: "text-gray-500 hover:text-gray-700"
+						}`}
+						onClick={() => {
+							setMode("coordinator");
+							setResult(null);
+						}}
+						type="button"
+					>
+						Coordinator
+					</button>
 				</div>
 
 				{mode === "text" ? (
@@ -213,6 +300,117 @@ export function EnqueuePage() {
 							value={promptText}
 						/>
 					</section>
+				) : mode === "coordinator" ? (
+					/* Coordinator Mode */
+					<>
+						{/* Coordinator Picker */}
+						<section className="rounded-lg border border-gray-200 bg-white p-6">
+							<h2 className="mb-3 font-medium text-gray-900 text-lg">
+								Coordinator
+							</h2>
+							<p className="mb-3 text-gray-500 text-sm">
+								Select a coordinator to moderate the discussion.
+							</p>
+
+							{treeLoading ? (
+								<p className="text-gray-500 text-sm">Loading...</p>
+							) : coordinators.length === 0 ? (
+								<p className="text-gray-500 text-sm">
+									No coordinators found in the config directory.
+								</p>
+							) : (
+								<div className="space-y-2">
+									{coordinators.map((c) => (
+										<label
+											className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+												selectedCoordinator === c.promptPath
+													? "border-blue-500 bg-blue-50"
+													: "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+											}`}
+											key={c.name}
+										>
+											<input
+												checked={selectedCoordinator === c.promptPath}
+												className="text-blue-600"
+												name="coordinator"
+												onChange={() => {
+													setSelectedCoordinator(c.promptPath);
+													setResult(null);
+												}}
+												type="radio"
+											/>
+											<span className="font-medium text-gray-900 text-sm">
+												{c.name}
+											</span>
+										</label>
+									))}
+								</div>
+							)}
+						</section>
+
+						{/* Teammates Multi-select */}
+						<section className="rounded-lg border border-gray-200 bg-white p-6">
+							<h2 className="mb-3 font-medium text-gray-900 text-lg">
+								Teammates
+							</h2>
+							<p className="mb-3 text-gray-500 text-sm">
+								Select agents to participate in the discussion.
+							</p>
+
+							{treeLoading ? (
+								<p className="text-gray-500 text-sm">Loading...</p>
+							) : agents.length === 0 ? (
+								<p className="text-gray-500 text-sm">
+									No agents found in the config directory.
+								</p>
+							) : (
+								<div className="space-y-2">
+									{agents.map((a) => (
+										<label
+											className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+												selectedTeammates.includes(a.name)
+													? "border-blue-500 bg-blue-50"
+													: "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+											}`}
+											key={a.name}
+										>
+											<input
+												checked={selectedTeammates.includes(a.name)}
+												className="text-blue-600"
+												onChange={() => toggleTeammate(a.name)}
+												type="checkbox"
+											/>
+											<span className="font-medium text-gray-900 text-sm">
+												{a.name}
+											</span>
+										</label>
+									))}
+								</div>
+							)}
+
+							{selectedTeammates.length > 0 && (
+								<p className="mt-3 text-gray-500 text-sm">
+									{selectedTeammates.length} teammate
+									{selectedTeammates.length !== 1 ? "s" : ""} selected
+								</p>
+							)}
+						</section>
+
+						{/* Topic Input */}
+						<section className="rounded-lg border border-gray-200 bg-white p-6">
+							<h2 className="mb-3 font-medium text-gray-900 text-lg">Topic</h2>
+							<p className="mb-3 text-gray-500 text-sm">
+								The topic for the agents to discuss.
+							</p>
+							<textarea
+								className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+								onChange={(e) => setTopic(e.target.value)}
+								placeholder="e.g. Should we migrate from monolith to microservices?"
+								rows={3}
+								value={topic}
+							/>
+						</section>
+					</>
 				) : (
 					<>
 						{/* Prompt File Picker */}

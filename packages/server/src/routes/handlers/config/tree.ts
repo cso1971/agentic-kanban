@@ -1,4 +1,4 @@
-import { readdir, stat } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import type { RouteHandler } from "@hono/zod-openapi";
 import type { configTreeRoute } from "#routes/config.ts";
@@ -10,7 +10,10 @@ interface TreeNode {
 	children?: TreeNode[];
 }
 
-async function buildTree(dirPath: string, basePath: string): Promise<TreeNode[]> {
+async function buildTree(
+	dirPath: string,
+	basePath: string,
+): Promise<TreeNode[]> {
 	const entries = await readdir(dirPath, { withFileTypes: true });
 	const nodes: TreeNode[] = [];
 
@@ -43,7 +46,9 @@ async function buildTree(dirPath: string, basePath: string): Promise<TreeNode[]>
 	return nodes;
 }
 
-export function createConfigTreeHandler(configDir: string): RouteHandler<typeof configTreeRoute> {
+export function createConfigTreeHandler(
+	configDir: string,
+): RouteHandler<typeof configTreeRoute> {
 	return async (c) => {
 		const tree = await buildTree(configDir, configDir);
 		return c.json({ tree });

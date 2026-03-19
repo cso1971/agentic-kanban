@@ -31,7 +31,7 @@ Authenticate with the coordinator token by default. When a specific teammate nee
 
 1. **Clone the repository**: clone the repository containing the issue using `glab repo clone {{PROJECT_ID}}` so the TypeScript Developer can inspect the actual codebase during the council.
 
-1. Read the coordinator agent prompt from `config/agents/coordinator/agent.md` and use it to organize a Council of Agents. The coordinator prompt contains placeholders:
+1. Read the coordinator agent prompt from `config/coordinators/round-robin/agent.md` and use it to organize a Council of Agents. The coordinator prompt contains placeholders:
 
     - Replace `{TOPIC}` with: "Plan the implementation of story #{{ISSUE_IID}}: {{ISSUE_TITLE}}. Break it into concrete implementation tasks."
     - Replace `{TOPIC_SLUG}` with {{TOPIC_SLUG}}

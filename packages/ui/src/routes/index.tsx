@@ -11,8 +11,7 @@ export function Dashboard() {
 		},
 	);
 
-	const running =
-		sessions?.filter((s) => s.status === "running").length ?? 0;
+	const running = sessions?.filter((s) => s.status === "running").length ?? 0;
 	const completed =
 		sessions?.filter((s) => s.status === "completed").length ?? 0;
 	const failed = sessions?.filter((s) => s.status === "failed").length ?? 0;

@@ -28,7 +28,7 @@ Authenticate with the coordinator token by default. When a specific teammate nee
 
 1. Add the `epic` label to the original issue {{ISSUE_IID}} using glab.
 
-1. Read the coordinator agent prompt from `config/agents/coordinator/agent.md` and use it to organize a Council of Agents. The coordinator prompt contains placeholders that will already be replaced before invocation:
+1. Read the coordinator agent prompt from `config/coordinators/round-robin/agent.md` and use it to organize a Council of Agents. The coordinator prompt contains placeholders that will already be replaced before invocation:
 
     - Replace `{TOPIC}` with {{TOPIC}}
     - Replace `{TOPIC_SLUG}` with {{TOPIC_SLUG}}

@@ -18,7 +18,10 @@ export const ConfigTreeResponseSchema = z
 	.openapi("ConfigTreeResponse");
 
 export const ConfigFileQuerySchema = z.object({
-	path: z.string().openapi({ description: "Relative path within config directory", example: "agents/it-architect/agent.md" }),
+	path: z.string().openapi({
+		description: "Relative path within config directory",
+		example: "agents/it-architect/agent.md",
+	}),
 });
 
 export const ConfigFileResponseSchema = z

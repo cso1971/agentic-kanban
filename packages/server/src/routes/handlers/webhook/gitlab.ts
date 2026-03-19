@@ -25,9 +25,7 @@ export function createGitlabWebhookHandler(
 			}
 		}
 
-		const payload = c.req.valid("json") as unknown as
-			| IssueEvent
-			| CommentEvent;
+		const payload = c.req.valid("json") as unknown as IssueEvent | CommentEvent;
 
 		const eventType = payload.object_kind;
 
@@ -123,7 +121,9 @@ async function handleNoteEvent(
 		mrTitle: mr.title ?? "",
 		sourceBranch: mr.source_branch ?? "",
 		reviewerName: payload.user?.name ?? payload.user?.username ?? "",
-		discussionId: (noteAttrs as unknown as Record<string, unknown>).discussion_id as string ?? "",
+		discussionId:
+			((noteAttrs as unknown as Record<string, unknown>)
+				.discussion_id as string) ?? "",
 		reviewComment: noteAttrs.note ?? "",
 	};
 
@@ -189,10 +189,7 @@ function matchNoteRule(
 	for (const rule of config.rules) {
 		if (rule.event !== "note") continue;
 		if (rule.action && rule.action !== noteAttrs.action) continue;
-		if (
-			rule.noteable_type &&
-			rule.noteable_type !== noteAttrs.noteable_type
-		) {
+		if (rule.noteable_type && rule.noteable_type !== noteAttrs.noteable_type) {
 			continue;
 		}
 		return rule;

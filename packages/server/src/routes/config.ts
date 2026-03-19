@@ -7,10 +7,6 @@ import {
 	ConfigFileWriteResponseSchema,
 	ConfigTreeResponseSchema,
 } from "#schemas/config.ts";
-import {
-	ValidateSkillBodySchema,
-	ValidateSkillResponseSchema,
-} from "#schemas/validate-skill.ts";
 
 export const configTreeRoute = createRoute({
 	method: "get",
@@ -95,50 +91,6 @@ export const configWriteFileRoute = createRoute({
 		},
 		400: {
 			description: "Invalid path",
-			content: {
-				"application/json": {
-					schema: ErrorResponseSchema,
-				},
-			},
-		},
-	},
-});
-
-export const configValidateSkillRoute = createRoute({
-	method: "post",
-	path: "/api/config/validate-skill",
-	tags: ["Config"],
-	summary: "Validate a skill file",
-	description:
-		"Validates the structure and quality of a skill markdown file using the claude CLI",
-	request: {
-		body: {
-			content: {
-				"application/json": {
-					schema: ValidateSkillBodySchema,
-				},
-			},
-		},
-	},
-	responses: {
-		200: {
-			description: "Validation result",
-			content: {
-				"application/json": {
-					schema: ValidateSkillResponseSchema,
-				},
-			},
-		},
-		400: {
-			description: "Invalid path or validation error",
-			content: {
-				"application/json": {
-					schema: ErrorResponseSchema,
-				},
-			},
-		},
-		404: {
-			description: "File not found",
 			content: {
 				"application/json": {
 					schema: ErrorResponseSchema,

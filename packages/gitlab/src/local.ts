@@ -86,7 +86,9 @@ puts token.token
 	await $`docker exec ${containerName} gitlab-rails runner ${"settings = ApplicationSetting.current; settings.allow_local_requests_from_web_hooks_and_services = true; settings.save!"}`
 		.quiet()
 		.catch((error) => {
-			log.warn("Failed to enable local webhook requests: {error}", { error: error.message });
+			log.warn("Failed to enable local webhook requests: {error}", {
+				error: error.message,
+			});
 		});
 
 	log.debug("Root access token created successfully");

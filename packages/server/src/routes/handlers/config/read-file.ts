@@ -22,7 +22,9 @@ function getMimeType(ext: string): string {
 	return mimeTypes[ext] ?? "application/octet-stream";
 }
 
-export function createConfigReadFileHandler(configDir: string): RouteHandler<typeof configReadFileRoute> {
+export function createConfigReadFileHandler(
+	configDir: string,
+): RouteHandler<typeof configReadFileRoute> {
 	return async (c) => {
 		const { path: filePath } = c.req.valid("query");
 

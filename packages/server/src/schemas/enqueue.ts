@@ -22,6 +22,12 @@ export const EnqueueBodySchema = z
 		reviewerName: z.string().optional(),
 		discussionId: z.string().optional(),
 		reviewComment: z.string().optional(),
+		teammatesTable: z
+			.string()
+			.optional()
+			.describe(
+				"Markdown table of teammates to inject into coordinator prompts as {{TEAMMATES_TABLE}}",
+			),
 	})
 	.openapi("EnqueueBody");
 

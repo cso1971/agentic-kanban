@@ -4,842 +4,852 @@
  */
 
 export interface paths {
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Health check
-         * @description Returns the health status of the server
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Server is healthy */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["HealthResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/agent-sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all agent sessions
-         * @description Returns a list of all agent sessions, sorted by most recent first
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of agent sessions */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AgentSession"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/agent-sessions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get agent session by ID
-         * @description Returns a single agent session by its ID
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Agent Session ID */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Agent session found */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AgentSession"];
-                    };
-                };
-                /** @description Agent session not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/agent-sessions/{id}/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get agent session messages
-         * @description Returns all messages for a specific agent session
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Agent Session ID */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of messages */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AgentSessionMessage"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/agent-sessions/{id}/artifacts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List agent session artifacts
-         * @description Returns all artifact files for a specific agent session
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Agent Session ID */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of artifact files */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ArtifactFile"][];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/agent-sessions/{id}/artifact": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get artifact file content
-         * @description Returns the content of a specific artifact file by its relative path
-         */
-        get: {
-            parameters: {
-                query: {
-                    /** @description Relative path within the artifacts directory */
-                    path: string;
-                };
-                header?: never;
-                path: {
-                    /** @description Agent Session ID */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Artifact file content */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ArtifactContent"];
-                    };
-                };
-                /** @description Artifact not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/config/tree": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get config directory tree
-         * @description Returns the file tree structure of the config directory
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Config directory tree */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ConfigTreeResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/config/file": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read a config file
-         * @description Reads a file from the config directory. Returns text content for text files and base64-encoded content for binary files.
-         */
-        get: {
-            parameters: {
-                query: {
-                    /** @description Relative path within config directory */
-                    path: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description File content */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ConfigFileResponse"];
-                    };
-                };
-                /** @description Invalid path */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description File not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        /**
-         * Write a config file
-         * @description Creates or updates a file in the config directory
-         */
-        put: {
-            parameters: {
-                query: {
-                    /** @description Relative path within config directory */
-                    path: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["ConfigFileWriteBody"];
-                };
-            };
-            responses: {
-                /** @description File written successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ConfigFileWriteResponse"];
-                    };
-                };
-                /** @description Invalid path */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/config/image": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Serve a config image file
-         * @description Serves an image file from the config directory with proper content type
-         */
-        get: {
-            parameters: {
-                query: {
-                    /** @description Relative path within config directory */
-                    path: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Image file */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "image/*": string;
-                    };
-                };
-                /** @description Image not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/config/validate-skill": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Validate a skill file
-         * @description Validates the structure and quality of a skill markdown file using the claude CLI
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["ValidateSkillBody"];
-                };
-            };
-            responses: {
-                /** @description Validation result */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ValidateSkillResponse"];
-                    };
-                };
-                /** @description Invalid path or validation error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description File not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/enqueue": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Enqueue an agent run
-         * @description Manually enqueue an agent job by selecting a prompt file and providing template variables
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["EnqueueBody"];
-                };
-            };
-            responses: {
-                /** @description Job enqueued successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["EnqueueResponse"];
-                    };
-                };
-                /** @description Invalid request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/integrations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get integrations status
-         * @description Returns the config directory path and GitLab connection status
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Integrations status */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["IntegrationsResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/webhook/gitlab": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * GitLab webhook endpoint
-         * @description Receives GitLab webhook events and triggers agent sessions based on configured rules
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            responses: {
-                /** @description Webhook processed */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": unknown;
-                    };
-                };
-                /** @description Unauthorized - invalid or missing X-Gitlab-Token */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": unknown;
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+	"/health": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Health check
+		 * @description Returns the health status of the server
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Server is healthy */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["HealthResponse"];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/agent-sessions": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * List all agent sessions
+		 * @description Returns a list of all agent sessions, sorted by most recent first
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description List of agent sessions */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["AgentSession"][];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/agent-sessions/{id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get agent session by ID
+		 * @description Returns a single agent session by its ID
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Agent Session ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Agent session found */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["AgentSession"];
+					};
+				};
+				/** @description Agent session not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/agent-sessions/{id}/messages": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get agent session messages
+		 * @description Returns all messages for a specific agent session
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Agent Session ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description List of messages */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["AgentSessionMessage"][];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/agent-sessions/{id}/artifacts": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * List agent session artifacts
+		 * @description Returns all artifact files for a specific agent session
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Agent Session ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description List of artifact files */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ArtifactFile"][];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/agent-sessions/{id}/artifact": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get artifact file content
+		 * @description Returns the content of a specific artifact file by its relative path
+		 */
+		get: {
+			parameters: {
+				query: {
+					/** @description Relative path within the artifacts directory */
+					path: string;
+				};
+				header?: never;
+				path: {
+					/** @description Agent Session ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Artifact file content */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ArtifactContent"];
+					};
+				};
+				/** @description Artifact not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/config/tree": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get config directory tree
+		 * @description Returns the file tree structure of the config directory
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Config directory tree */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ConfigTreeResponse"];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/config/file": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Read a config file
+		 * @description Reads a file from the config directory. Returns text content for text files and base64-encoded content for binary files.
+		 */
+		get: {
+			parameters: {
+				query: {
+					/** @description Relative path within config directory */
+					path: string;
+				};
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description File content */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ConfigFileResponse"];
+					};
+				};
+				/** @description Invalid path */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+				/** @description File not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		/**
+		 * Write a config file
+		 * @description Creates or updates a file in the config directory
+		 */
+		put: {
+			parameters: {
+				query: {
+					/** @description Relative path within config directory */
+					path: string;
+				};
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": components["schemas"]["ConfigFileWriteBody"];
+				};
+			};
+			responses: {
+				/** @description File written successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ConfigFileWriteResponse"];
+					};
+				};
+				/** @description Invalid path */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/config/image": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Serve a config image file
+		 * @description Serves an image file from the config directory with proper content type
+		 */
+		get: {
+			parameters: {
+				query: {
+					/** @description Relative path within config directory */
+					path: string;
+				};
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Image file */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"image/*": string;
+					};
+				};
+				/** @description Image not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/config/validate-skill": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Validate a skill file
+		 * @description Validates the structure and quality of a skill markdown file using the claude CLI
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": components["schemas"]["ValidateSkillBody"];
+				};
+			};
+			responses: {
+				/** @description Validation result */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ValidateSkillResponse"];
+					};
+				};
+				/** @description Invalid path or validation error */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+				/** @description File not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/enqueue": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Enqueue an agent run
+		 * @description Manually enqueue an agent job by selecting a prompt file and providing template variables
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": components["schemas"]["EnqueueBody"];
+				};
+			};
+			responses: {
+				/** @description Job enqueued successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["EnqueueResponse"];
+					};
+				};
+				/** @description Invalid request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/integrations": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get integrations status
+		 * @description Returns the config directory path and GitLab connection status
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Integrations status */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["IntegrationsResponse"];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/webhook/gitlab": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * GitLab webhook endpoint
+		 * @description Receives GitLab webhook events and triggers agent sessions based on configured rules
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": unknown;
+				};
+			};
+			responses: {
+				/** @description Webhook processed */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": unknown;
+					};
+				};
+				/** @description Unauthorized - invalid or missing X-Gitlab-Token */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": unknown;
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        HealthResponse: {
-            /** @enum {string} */
-            status: "ok";
-        };
-        AgentSession: {
-            id: string;
-            /** @enum {string} */
-            status: "running" | "completed" | "failed";
-            prompt: string;
-            cwd: string;
-            startedAt: string;
-            completedAt?: string;
-            result?: string;
-            error?: string;
-            durationMs?: number;
-            totalCostUsd?: number;
-            numTurns?: number;
-            model?: string;
-            jobId?: string;
-        };
-        ErrorResponse: {
-            error: string;
-        };
-        AgentSessionMessage: {
-            timestamp: string;
-            type: string;
-            message?: components["schemas"]["ParsedMessage"];
-            raw?: unknown;
-        };
-        ParsedMessage: {
-            /** @enum {string} */
-            type: "assistant_text";
-            text: string;
-            messageId: string;
-        } | {
-            /** @enum {string} */
-            type: "tool_use";
-            toolName: string;
-            toolUseId: string;
-            input: {
-                [key: string]: unknown;
-            };
-        } | {
-            /** @enum {string} */
-            type: "tool_result";
-            toolUseId: string;
-            content: string;
-            isError: boolean;
-        } | {
-            /** @enum {string} */
-            type: "task_progress";
-            taskId: string;
-            description: string;
-            toolName?: string;
-            usage: {
-                totalTokens: number;
-                toolUses: number;
-                durationMs: number;
-            };
-        } | {
-            /** @enum {string} */
-            type: "task_notification";
-            taskId: string;
-            /** @enum {string} */
-            status: "completed" | "failed" | "stopped";
-            summary: string;
-        } | {
-            /** @enum {string} */
-            type: "result";
-            subtype: string;
-            result?: string;
-            error?: string;
-            durationMs: number;
-            totalCostUsd: number;
-            numTurns: number;
-        } | {
-            /** @enum {string} */
-            type: "init";
-            model: string;
-            sessionId: string;
-            tools: string[];
-        } | {
-            /** @enum {string} */
-            type: "unknown";
-            sdkType: string;
-            raw?: unknown;
-        };
-        ArtifactFile: {
-            name: string;
-            size: number;
-            modifiedAt: string;
-        };
-        ArtifactContent: {
-            name: string;
-            content: string;
-        };
-        ConfigTreeResponse: {
-            tree: components["schemas"]["ConfigTreeNode"][];
-        };
-        ConfigTreeNode: {
-            name: string;
-            path: string;
-            /** @enum {string} */
-            type: "file" | "directory";
-            children?: components["schemas"]["ConfigTreeNode"][];
-        };
-        ConfigFileResponse: {
-            path: string;
-            content: string;
-            mimeType: string;
-        };
-        ConfigFileWriteResponse: {
-            path: string;
-            success: boolean;
-        };
-        ConfigFileWriteBody: {
-            content: string;
-        };
-        ValidateSkillResponse: {
-            path: string;
-            valid: boolean;
-            /** @description Quality/validation score from skill-creator (0 to 1) */
-            score: number;
-            /** @description Evaluation summary from the skill-creator plugin */
-            feedback: string;
-            /** @description Specific improvements suggested by skill-creator */
-            improvements: string[];
-        };
-        ValidateSkillBody: {
-            /**
-             * @description Relative path within config directory
-             * @example skills/my-skill.md
-             */
-            path: string;
-        };
-        EnqueueResponse: {
-            /** @enum {string} */
-            status: "accepted";
-            jobId: string;
-            agentSessionId: string;
-            promptPath: string;
-        };
-        EnqueueBody: {
-            /** @description Relative path to the prompt .md file within the config directory */
-            promptPath?: string;
-            /** @description Raw prompt text to use directly instead of a file */
-            promptText?: string;
-            /** @default  */
-            projectId: string;
-            issueId?: string;
-            issueTitle?: string;
-            issueDescription?: string;
-            mrIid?: string;
-            mrTitle?: string;
-            sourceBranch?: string;
-            reviewerName?: string;
-            discussionId?: string;
-            reviewComment?: string;
-        };
-        IntegrationsResponse: {
-            configDir: string;
-            gitlab: {
-                url: string;
-                connected: boolean;
-            };
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+	schemas: {
+		HealthResponse: {
+			/** @enum {string} */
+			status: "ok";
+		};
+		AgentSession: {
+			id: string;
+			/** @enum {string} */
+			status: "running" | "completed" | "failed";
+			prompt: string;
+			cwd: string;
+			startedAt: string;
+			completedAt?: string;
+			result?: string;
+			error?: string;
+			durationMs?: number;
+			totalCostUsd?: number;
+			numTurns?: number;
+			model?: string;
+			jobId?: string;
+		};
+		ErrorResponse: {
+			error: string;
+		};
+		AgentSessionMessage: {
+			timestamp: string;
+			type: string;
+			message?: components["schemas"]["ParsedMessage"];
+			raw?: unknown;
+		};
+		ParsedMessage:
+			| {
+					/** @enum {string} */
+					type: "assistant_text";
+					text: string;
+					messageId: string;
+			  }
+			| {
+					/** @enum {string} */
+					type: "tool_use";
+					toolName: string;
+					toolUseId: string;
+					input: {
+						[key: string]: unknown;
+					};
+			  }
+			| {
+					/** @enum {string} */
+					type: "tool_result";
+					toolUseId: string;
+					content: string;
+					isError: boolean;
+			  }
+			| {
+					/** @enum {string} */
+					type: "task_progress";
+					taskId: string;
+					description: string;
+					toolName?: string;
+					usage: {
+						totalTokens: number;
+						toolUses: number;
+						durationMs: number;
+					};
+			  }
+			| {
+					/** @enum {string} */
+					type: "task_notification";
+					taskId: string;
+					/** @enum {string} */
+					status: "completed" | "failed" | "stopped";
+					summary: string;
+			  }
+			| {
+					/** @enum {string} */
+					type: "result";
+					subtype: string;
+					result?: string;
+					error?: string;
+					durationMs: number;
+					totalCostUsd: number;
+					numTurns: number;
+			  }
+			| {
+					/** @enum {string} */
+					type: "init";
+					model: string;
+					sessionId: string;
+					tools: string[];
+			  }
+			| {
+					/** @enum {string} */
+					type: "unknown";
+					sdkType: string;
+					raw?: unknown;
+			  };
+		ArtifactFile: {
+			name: string;
+			size: number;
+			modifiedAt: string;
+		};
+		ArtifactContent: {
+			name: string;
+			content: string;
+		};
+		ConfigTreeResponse: {
+			tree: components["schemas"]["ConfigTreeNode"][];
+		};
+		ConfigTreeNode: {
+			name: string;
+			path: string;
+			/** @enum {string} */
+			type: "file" | "directory";
+			children?: components["schemas"]["ConfigTreeNode"][];
+		};
+		ConfigFileResponse: {
+			path: string;
+			content: string;
+			mimeType: string;
+		};
+		ConfigFileWriteResponse: {
+			path: string;
+			success: boolean;
+		};
+		ConfigFileWriteBody: {
+			content: string;
+		};
+		ValidateSkillResponse: {
+			path: string;
+			valid: boolean;
+			/** @description Quality/validation score from skill-creator (0 to 1) */
+			score: number;
+			/** @description Evaluation summary from the skill-creator plugin */
+			feedback: string;
+			/** @description Specific improvements suggested by skill-creator */
+			improvements: string[];
+		};
+		ValidateSkillBody: {
+			/**
+			 * @description Relative path within config directory
+			 * @example skills/my-skill.md
+			 */
+			path: string;
+		};
+		EnqueueResponse: {
+			/** @enum {string} */
+			status: "accepted";
+			jobId: string;
+			agentSessionId: string;
+			promptPath: string;
+		};
+		EnqueueBody: {
+			/** @description Relative path to the prompt .md file within the config directory */
+			promptPath?: string;
+			/** @description Raw prompt text to use directly instead of a file */
+			promptText?: string;
+			/** @default  */
+			projectId: string;
+			issueId?: string;
+			issueTitle?: string;
+			issueDescription?: string;
+			mrIid?: string;
+			mrTitle?: string;
+			sourceBranch?: string;
+			reviewerName?: string;
+			discussionId?: string;
+			reviewComment?: string;
+			/** @description Markdown table of teammates to inject into coordinator prompts as {{TEAMMATES_TABLE}} */
+			teammatesTable?: string;
+		};
+		IntegrationsResponse: {
+			configDir: string;
+			gitlab: {
+				url: string;
+				connected: boolean;
+			};
+		};
+	};
+	responses: never;
+	parameters: never;
+	requestBodies: never;
+	headers: never;
+	pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

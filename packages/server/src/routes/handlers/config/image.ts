@@ -15,7 +15,9 @@ function getImageContentType(ext: string): string {
 	return types[ext] ?? "application/octet-stream";
 }
 
-export function createConfigImageHandler(configDir: string): RouteHandler<typeof configImageRoute> {
+export function createConfigImageHandler(
+	configDir: string,
+): RouteHandler<typeof configImageRoute> {
 	return async (c) => {
 		const { path: filePath } = c.req.valid("query");
 

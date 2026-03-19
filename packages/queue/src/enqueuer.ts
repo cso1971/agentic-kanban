@@ -12,6 +12,7 @@ export interface EnqueuePayload {
 	reviewerName?: string;
 	discussionId?: string;
 	reviewComment?: string;
+	teammatesTable?: string;
 }
 
 async function enqueueAgentJob(
@@ -35,11 +36,9 @@ async function enqueueAgentJob(
 		.replaceAll("{{REVIEWER_NAME}}", payload.reviewerName ?? "")
 		.replaceAll("{{DISCUSSION_ID}}", payload.discussionId ?? "")
 		.replaceAll("{{REVIEW_COMMENT}}", payload.reviewComment ?? "")
+		.replaceAll("{{TEAMMATES_TABLE}}", payload.teammatesTable ?? "")
 		.replaceAll("{{TOPIC}}", title)
-		.replaceAll(
-			"{{TOPIC_SLUG}}",
-			title.toLowerCase().replace(/ /g, "-"),
-		)
+		.replaceAll("{{TOPIC_SLUG}}", title.toLowerCase().replace(/ /g, "-"))
 		.replaceAll(
 			"{{ARTIFACT_DIR}}",
 			await store.artifactsDirectory(agentSessionId),

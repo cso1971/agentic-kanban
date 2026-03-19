@@ -17,6 +17,33 @@ import {
 const execFileAsync = promisify(execFile);
 const log = logger.core;
 
+/** Env vars from .env that the agent subprocess needs */
+const APP_ENV_KEYS = [
+	"GITLAB_ROOT_PASSWORD",
+	"GITLAB_TOKEN",
+	"GITLAB_HOST",
+	"ANTHROPIC_API_KEY",
+] as const;
+
+/** System env vars required for the subprocess to function */
+const SYSTEM_ENV_KEYS = ["PATH", "SHELL"] as const;
+
+function buildAgentEnv(extra?: Record<string, string>): Record<string, string> {
+	const env: Record<string, string> = {};
+
+	for (const key of [...SYSTEM_ENV_KEYS, ...APP_ENV_KEYS]) {
+		if (process.env[key]) {
+			env[key] = process.env[key];
+		}
+	}
+
+	if (extra) {
+		Object.assign(env, extra);
+	}
+
+	return env;
+}
+
 export type Models = "sonnet" | "opus" | "haiku";
 export type ClaudePlugin = "skill-creator@claude-plugins-official";
 
@@ -115,7 +142,7 @@ export async function runAgent(
 		const child = spawn("claude", args, {
 			cwd,
 			stdio: ["ignore", "pipe", "pipe"],
-			env: { ...process.env, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1" },
+			env: buildAgentEnv({ CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1" }),
 		});
 
 		let fullOutput = "";
@@ -229,6 +256,7 @@ export async function askQuestion(
 	return new Promise<string>((resolve, reject) => {
 		const child = spawn("claude", args, {
 			stdio: ["ignore", "pipe", "pipe"],
+			env: buildAgentEnv(),
 		});
 
 		let output = "";

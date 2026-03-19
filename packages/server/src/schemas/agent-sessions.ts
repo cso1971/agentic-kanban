@@ -117,12 +117,10 @@ export const ArtifactFileSchema = z
 	.openapi("ArtifactFile");
 
 export const ArtifactContentQuerySchema = z.object({
-	path: z
-		.string()
-		.openapi({
-			description: "Relative path within the artifacts directory",
-			example: "report.md",
-		}),
+	path: z.string().openapi({
+		description: "Relative path within the artifacts directory",
+		example: "report.md",
+	}),
 });
 
 export const ArtifactContentSchema = z

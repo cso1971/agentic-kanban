@@ -20,18 +20,6 @@ function isMarkdownFile(path: string): boolean {
 	return path.toLowerCase().endsWith(".md");
 }
 
-function isSkillFile(path: string): boolean {
-	return path.startsWith("skills/") && path.endsWith(".md");
-}
-
-interface ValidationResult {
-	path: string;
-	valid: boolean;
-	score: number;
-	feedback: string;
-	improvements: string[];
-}
-
 export function ConfigPage() {
 	const [selectedPath, setSelectedPath] = useState<string | null>(null);
 
@@ -124,9 +112,7 @@ function FileTreeNode({
 					style={{ paddingLeft: `${depth * 16 + 8}px` }}
 					type="button"
 				>
-					<span className="text-gray-400 text-xs">
-						{expanded ? "▼" : "▶"}
-					</span>
+					<span className="text-gray-400 text-xs">{expanded ? "▼" : "▶"}</span>
 					<span className="text-gray-400">📁</span>
 					<span className="font-medium">{node.name}</span>
 				</button>
@@ -151,9 +137,7 @@ function FileTreeNode({
 	return (
 		<button
 			className={`flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm hover:bg-gray-100 ${
-				isSelected
-					? "bg-blue-50 font-medium text-blue-700"
-					: "text-gray-700"
+				isSelected ? "bg-blue-50 font-medium text-blue-700" : "text-gray-700"
 			}`}
 			onClick={() => onSelect(node.path)}
 			style={{ paddingLeft: `${depth * 16 + 8}px` }}
@@ -192,89 +176,20 @@ function ImageViewer({ path }: { path: string }) {
 	);
 }
 
-function ValidationResultPanel({
-	result,
-	onDismiss,
-}: {
-	result: ValidationResult;
-	onDismiss: () => void;
-}) {
-	const scorePercent = Math.round(result.score * 100);
-	const scoreColor =
-		result.score >= 0.7
-			? "text-green-600"
-			: result.score >= 0.4
-				? "text-amber-600"
-				: "text-red-600";
-
-	return (
-		<div className="border-gray-200 border-t bg-gray-50 p-4">
-			<div className="mb-3 flex items-center justify-between">
-				<div className="flex items-center gap-3">
-					<div
-						className={`rounded px-3 py-1 text-sm font-medium ${
-							result.valid
-								? "bg-green-100 text-green-800"
-								: "bg-red-100 text-red-800"
-						}`}
-					>
-						{result.valid ? "Valid" : "Invalid"}
-					</div>
-					<span className={`font-semibold text-sm ${scoreColor}`}>
-						Score: {scorePercent}%
-					</span>
-				</div>
-				<button
-					className="text-gray-400 text-sm hover:text-gray-600"
-					onClick={onDismiss}
-					type="button"
-				>
-					Dismiss
-				</button>
-			</div>
-
-			<p className="mb-3 text-gray-700 text-sm">{result.feedback}</p>
-
-			{result.improvements.length > 0 && (
-				<div>
-					<h4 className="mb-1 font-medium text-gray-900 text-sm">
-						Improvements
-					</h4>
-					<ul className="list-inside list-disc space-y-0.5">
-						{result.improvements.map((s, i) => (
-							<li className="text-gray-600 text-sm" key={`improvement-${i}`}>
-								{s}
-							</li>
-						))}
-					</ul>
-				</div>
-			)}
-		</div>
-	);
-}
-
 function TextFileViewer({ path }: { path: string }) {
 	const [editing, setEditing] = useState(false);
 	const [editContent, setEditContent] = useState("");
-	const [validationResult, setValidationResult] =
-		useState<ValidationResult | null>(null);
-
-	const { data: fileData, isLoading, refetch } = $api.useQuery(
-		"get",
-		"/api/config/file",
-		{ params: { query: { path } } },
-	);
+	const {
+		data: fileData,
+		isLoading,
+		refetch,
+	} = $api.useQuery("get", "/api/config/file", { params: { query: { path } } });
 
 	const saveMutation = $api.useMutation("put", "/api/config/file");
-	const validateMutation = $api.useMutation(
-		"post",
-		"/api/config/validate-skill",
-	);
 
 	// Reset state when path changes
 	useEffect(() => {
 		setEditing(false);
-		setValidationResult(null);
 	}, [path]);
 
 	const handleEdit = useCallback(() => {
@@ -297,13 +212,6 @@ function TextFileViewer({ path }: { path: string }) {
 		setEditing(false);
 	}, []);
 
-	const handleValidate = useCallback(async () => {
-		const result = await validateMutation.mutateAsync({
-			body: { path },
-		});
-		setValidationResult(result as ValidationResult);
-	}, [validateMutation, path]);
-
 	if (isLoading) {
 		return (
 			<div className="p-6">
@@ -314,7 +222,6 @@ function TextFileViewer({ path }: { path: string }) {
 
 	const content = fileData?.content ?? "";
 	const isMarkdown = isMarkdownFile(path);
-	const showValidate = isSkillFile(path);
 
 	return (
 		<div className="flex h-full flex-col">
@@ -342,18 +249,6 @@ function TextFileViewer({ path }: { path: string }) {
 						</>
 					) : (
 						<>
-							{showValidate && (
-								<button
-									className="rounded bg-amber-500 px-3 py-1.5 text-sm text-white hover:bg-amber-600 disabled:opacity-50"
-									disabled={validateMutation.isPending}
-									onClick={handleValidate}
-									type="button"
-								>
-									{validateMutation.isPending
-										? "Validating..."
-										: "Validate"}
-								</button>
-							)}
 							<button
 								className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
 								onClick={handleEdit}
@@ -376,9 +271,7 @@ function TextFileViewer({ path }: { path: string }) {
 					/>
 				) : isMarkdown ? (
 					<div className="prose prose-sm max-w-none p-6">
-						<ReactMarkdown remarkPlugins={[remarkGfm]}>
-							{content}
-						</ReactMarkdown>
+						<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
 					</div>
 				) : (
 					<pre className="whitespace-pre-wrap p-6 font-mono text-sm">
@@ -386,14 +279,6 @@ function TextFileViewer({ path }: { path: string }) {
 					</pre>
 				)}
 			</div>
-
-			{/* Validation Result */}
-			{validationResult && (
-				<ValidationResultPanel
-					onDismiss={() => setValidationResult(null)}
-					result={validationResult}
-				/>
-			)}
 		</div>
 	);
 }

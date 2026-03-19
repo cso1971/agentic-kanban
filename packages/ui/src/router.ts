@@ -4,10 +4,10 @@ import {
 	createRouter,
 } from "@tanstack/react-router";
 import { RootLayout } from "#routes/__root.tsx";
-import { Dashboard } from "#routes/index.tsx";
 import { AgentSessionsPage } from "#routes/agent-sessions.tsx";
 import { ConfigPage } from "#routes/config.tsx";
 import { EnqueuePage } from "#routes/enqueue.tsx";
+import { Dashboard } from "#routes/index.tsx";
 import { IntegrationsPage } from "#routes/integrations.tsx";
 
 const rootRoute = createRootRoute({
@@ -50,7 +50,14 @@ const integrationsRoute = createRoute({
 	component: IntegrationsPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, agentSessionsRoute, agentSessionDetailRoute, configRoute, enqueueRoute, integrationsRoute]);
+const routeTree = rootRoute.addChildren([
+	indexRoute,
+	agentSessionsRoute,
+	agentSessionDetailRoute,
+	configRoute,
+	enqueueRoute,
+	integrationsRoute,
+]);
 
 export const router = createRouter({ routeTree });
 

@@ -1,7 +1,7 @@
 export type { AgentDefinition } from "@anthropic-ai/claude-agent-sdk";
 export {
-	agent,
 	type AskQuestionOptions,
+	agent,
 	type ClaudePlugin,
 	type RunAgentOptions,
 	type RunAgentResult,

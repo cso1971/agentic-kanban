@@ -3,7 +3,9 @@ import { dirname, join, resolve } from "node:path";
 import type { RouteHandler } from "@hono/zod-openapi";
 import type { configWriteFileRoute } from "#routes/config.ts";
 
-export function createConfigWriteFileHandler(configDir: string): RouteHandler<typeof configWriteFileRoute> {
+export function createConfigWriteFileHandler(
+	configDir: string,
+): RouteHandler<typeof configWriteFileRoute> {
 	return async (c) => {
 		const { path: filePath } = c.req.valid("query");
 
