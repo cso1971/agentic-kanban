@@ -15,6 +15,8 @@ export interface AgentSession {
 	totalCostUsd?: number;
 	numTurns?: number;
 	model?: string;
+	/** Claude CLI session ID for resume support */
+	claudeSessionId?: string;
 	/** Associated queue job ID for correlation */
 	jobId?: string;
 }
@@ -148,6 +150,16 @@ async function getAgentSessionArtifactContent(
 	}
 }
 
+export async function updateAgentSession(
+	id: string,
+	update: Partial<AgentSession>,
+): Promise<void> {
+	const filePath = join(agentSessionDir(id), "session.json");
+	const existing: AgentSession = JSON.parse(await readFile(filePath, "utf-8"));
+	const updated = { ...existing, ...update };
+	await writeFile(filePath, JSON.stringify(updated, null, 2));
+}
+
 export async function completeAgentSession(
 	id: string,
 	update: Partial<AgentSession>,
@@ -222,6 +234,7 @@ export async function getAgentSessionMessages(
 
 export const store = {
 	get: getAgentSession,
+	update: updateAgentSession,
 	getMessages: getAgentSessionMessages,
 	list: listAgentSessions,
 	workingDirectory: getAgentSessionWorkingDirectory,

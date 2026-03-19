@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"@agentic-kanban/core": "workspace:*",
+		"@agentic-kanban/gitlab": "workspace:*",
 		"@agentic-kanban/queue": "workspace:*",
 		"@bull-board/api": "catalog:",
 		"@bull-board/hono": "catalog:",

@@ -521,6 +521,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/enqueue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enqueue an agent run
+         * @description Manually enqueue an agent job by selecting a prompt file and providing template variables
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["EnqueueBody"];
+                };
+            };
+            responses: {
+                /** @description Job enqueued successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnqueueResponse"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get integrations status
+         * @description Returns the config directory path and GitLab connection status
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Integrations status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IntegrationsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/webhook/gitlab": {
         parameters: {
             query?: never;
@@ -711,6 +802,37 @@ export interface components {
              * @example skills/my-skill.md
              */
             path: string;
+        };
+        EnqueueResponse: {
+            /** @enum {string} */
+            status: "accepted";
+            jobId: string;
+            agentSessionId: string;
+            promptPath: string;
+        };
+        EnqueueBody: {
+            /** @description Relative path to the prompt .md file within the config directory */
+            promptPath?: string;
+            /** @description Raw prompt text to use directly instead of a file */
+            promptText?: string;
+            /** @default  */
+            projectId: string;
+            issueId?: string;
+            issueTitle?: string;
+            issueDescription?: string;
+            mrIid?: string;
+            mrTitle?: string;
+            sourceBranch?: string;
+            reviewerName?: string;
+            discussionId?: string;
+            reviewComment?: string;
+        };
+        IntegrationsResponse: {
+            configDir: string;
+            gitlab: {
+                url: string;
+                connected: boolean;
+            };
         };
     };
     responses: never;

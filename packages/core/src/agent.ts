@@ -5,10 +5,13 @@ import { logger } from "#logger.ts";
 import { parseError } from "#parse-error.ts";
 import { extractText, parseMessage } from "#parse-message.ts";
 import {
+	type AgentSession,
 	type AgentSessionMessage,
 	appendMessage,
 	completeAgentSession,
 	createAgentSession,
+	getAgentSession,
+	updateAgentSession,
 } from "#store.ts";
 
 const execFileAsync = promisify(execFile);
@@ -27,7 +30,7 @@ export interface AskQuestionOptions {
 
 export interface RunAgentOptions {
 	prompt: string;
-	cwd?: string;
+	cwd: string;
 	model?: Models;
 	/** Pre-generated agent session ID */
 	agentSessionId?: string;
@@ -44,6 +47,16 @@ export interface RunAgentResult {
 	result: string;
 }
 
+const RESUMABLE_STATUSES: AgentSession["status"][] = ["running", "failed"];
+
+function getResumableClaudeSessionId(
+	session: AgentSession | null,
+): string | undefined {
+	if (!session?.claudeSessionId) return undefined;
+	if (!RESUMABLE_STATUSES.includes(session.status)) return undefined;
+	return session.claudeSessionId;
+}
+
 /**
  * Runs the `claude` CLI executable as a subprocess, creates an agent session,
  * and streams all stdout output as session messages.
@@ -52,17 +65,37 @@ export async function runAgent(
 	options: RunAgentOptions,
 ): Promise<RunAgentResult> {
 	const sessionId = options.agentSessionId ?? randomUUID();
-	const cwd = options.cwd ?? process.cwd();
+	const cwd = options.cwd;
 
-	await createAgentSession(sessionId, options.prompt, cwd, options.jobId);
+	// Check if we can resume an existing session
+	const existingSession = await getAgentSession(sessionId);
+	const resumeClaudeSessionId = getResumableClaudeSessionId(existingSession);
+
+	if (resumeClaudeSessionId) {
+		await updateAgentSession(sessionId, {
+			status: "running",
+			error: undefined,
+		});
+		log.info`Resuming session ${sessionId} (claude session: ${resumeClaudeSessionId})`;
+	} else {
+		await createAgentSession(sessionId, options.prompt, cwd, options.jobId);
+	}
 
 	const args: string[] = [
 		"--print",
 		"--verbose",
 		"--output-format",
 		"stream-json",
-		options.prompt,
 	];
+
+	if (resumeClaudeSessionId) {
+		args.push("--resume", resumeClaudeSessionId);
+		args.push(
+			"Continue the previous task. If it was completed, confirm the result.",
+		);
+	} else {
+		args.push(options.prompt);
+	}
 
 	if (options.model) {
 		args.push("--model", options.model);
@@ -82,7 +115,6 @@ export async function runAgent(
 		const child = spawn("claude", args, {
 			cwd,
 			stdio: ["ignore", "pipe", "pipe"],
-			// TODO: check this env, dangerous
 			env: { ...process.env, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1" },
 		});
 
@@ -97,6 +129,15 @@ export async function runAgent(
 				const text = extractText(message);
 
 				if (text) fullOutput += text;
+
+				if (message?.type === "init") {
+					updateAgentSession(sessionId, {
+						claudeSessionId: message.sessionId,
+						model: message.model,
+					}).catch((err: unknown) => {
+						log.error`Failed to persist claudeSessionId: ${err}`;
+					});
+				}
 
 				const msg: AgentSessionMessage = {
 					timestamp: new Date().toISOString(),

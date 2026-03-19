@@ -20,6 +20,18 @@ export function RootLayout() {
 					>
 						Config
 					</Link>
+					<Link
+						className="text-gray-600 hover:text-gray-900 [&.active]:font-medium [&.active]:text-blue-600"
+						to="/enqueue"
+					>
+						Enqueue
+					</Link>
+					<Link
+						className="text-gray-600 hover:text-gray-900 [&.active]:font-medium [&.active]:text-blue-600"
+						to="/integrations"
+					>
+						Integrations
+					</Link>
 				</div>
 			</nav>
 			<main>

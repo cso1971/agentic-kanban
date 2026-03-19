@@ -15,8 +15,12 @@ import {
 	createConfigValidateSkillHandler,
 	createConfigWriteFileHandler,
 } from "#routes/handlers/config/index.ts";
+import { createIntegrationsHandler } from "#routes/handlers/integrations/index.ts";
+import { createEnqueueHandler } from "#routes/handlers/enqueue/index.ts";
 import { createGitlabWebhookHandler } from "#routes/handlers/webhook/index.ts";
+import { enqueueRoute } from "#routes/enqueue.ts";
 import { healthRoute } from "#routes/health.ts";
+import { integrationsRoute } from "#routes/integrations.ts";
 import {
 	getAgentSessionArtifactRoute,
 	getAgentSessionMessagesRoute,
@@ -68,6 +72,12 @@ export function registerRoutes(app: OpenAPIHono, ctx: RouteContext): void {
 		configValidateSkillRoute,
 		createConfigValidateSkillHandler(configDir),
 	);
+
+	// Enqueue
+	app.openapi(enqueueRoute, createEnqueueHandler(configDir));
+
+	// Integrations
+	app.openapi(integrationsRoute, createIntegrationsHandler(configDir));
 
 	// Webhook
 	app.openapi(gitlabWebhookRoute, createGitlabWebhookHandler(ctx));

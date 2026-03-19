@@ -7,6 +7,8 @@ import { RootLayout } from "#routes/__root.tsx";
 import { Dashboard } from "#routes/index.tsx";
 import { AgentSessionsPage } from "#routes/agent-sessions.tsx";
 import { ConfigPage } from "#routes/config.tsx";
+import { EnqueuePage } from "#routes/enqueue.tsx";
+import { IntegrationsPage } from "#routes/integrations.tsx";
 
 const rootRoute = createRootRoute({
 	component: RootLayout,
@@ -36,7 +38,19 @@ const configRoute = createRoute({
 	component: ConfigPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, agentSessionsRoute, agentSessionDetailRoute, configRoute]);
+const enqueueRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/enqueue",
+	component: EnqueuePage,
+});
+
+const integrationsRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/integrations",
+	component: IntegrationsPage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, agentSessionsRoute, agentSessionDetailRoute, configRoute, enqueueRoute, integrationsRoute]);
 
 export const router = createRouter({ routeTree });
 

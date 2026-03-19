@@ -193,6 +193,9 @@ importers:
       '@agentic-kanban/core':
         specifier: workspace:*
         version: link:../core
+      '@agentic-kanban/gitlab':
+        specifier: workspace:*
+        version: link:../gitlab
       '@agentic-kanban/queue':
         specifier: workspace:*
         version: link:../queue
