@@ -45,7 +45,9 @@ function buildAgentEnv(extra?: Record<string, string>): Record<string, string> {
 }
 
 export type Models = "sonnet" | "opus" | "haiku";
-export type ClaudePlugin = "skill-creator@claude-plugins-official";
+export type ClaudePlugin =
+	| "skill-creator@claude-plugins-official"
+	| "ralph-loop";
 
 export interface AskQuestionOptions {
 	prompt: string;
@@ -67,6 +69,8 @@ export interface RunAgentOptions {
 	extraArgs?: string[];
 	/** Permission mode flag (--dangerously-skip-permissions, etc.) */
 	permissionMode?: "default" | "bypassPermissions";
+	/** Plugins that must be installed before running */
+	requiredPlugins?: ClaudePlugin[];
 }
 
 export interface RunAgentResult {
@@ -91,6 +95,10 @@ function getResumableClaudeSessionId(
 export async function runAgent(
 	options: RunAgentOptions,
 ): Promise<RunAgentResult> {
+	if (options.requiredPlugins?.length) {
+		await checkPlugins(options.requiredPlugins);
+	}
+
 	const sessionId = options.agentSessionId ?? randomUUID();
 	const cwd = options.cwd;
 

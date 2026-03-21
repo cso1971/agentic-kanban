@@ -28,6 +28,10 @@ export const EnqueueBodySchema = z
 			.describe(
 				"Markdown table of teammates to inject into coordinator prompts as {{TEAMMATES_TABLE}}",
 			),
+		requiredPlugins: z
+			.array(z.string())
+			.optional()
+			.describe("Claude plugins required for this agent run"),
 	})
 	.openapi("EnqueueBody");
 

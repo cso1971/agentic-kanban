@@ -200,6 +200,8 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 				</>
 			)}
 
+			<SkillsUsedSection messages={messages} />
+
 			<ArtifactsSection
 				isRunning={session.status === "running"}
 				sessionId={session.id}
@@ -207,6 +209,62 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 
 			<MessagesSection messages={messages} />
 		</div>
+	);
+}
+
+function SkillsUsedSection({
+	messages,
+}: {
+	messages: AgentSessionMessage[] | undefined;
+}) {
+	const skills = useMemo(() => {
+		if (!messages) return null;
+
+		const skillCounts = new Map<string, number>();
+
+		for (const msg of messages) {
+			const parsed = msg.message;
+			if (!parsed) continue;
+			if (parsed.type === "tool_use" && parsed.toolName === "Skill") {
+				const skillName =
+					(parsed.input as { skill?: string }).skill ?? "unknown";
+				skillCounts.set(skillName, (skillCounts.get(skillName) ?? 0) + 1);
+			}
+		}
+
+		if (skillCounts.size === 0) return null;
+
+		return [...skillCounts.entries()].sort((a, b) => b[1] - a[1]);
+	}, [messages]);
+
+	if (!skills) return null;
+
+	return (
+		<details className="group mb-4" open>
+			<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+					&#9654;
+				</span>
+				Skills ({skills.length})
+			</summary>
+			<div className="rounded-lg border border-gray-200 bg-white p-4">
+				<div className="flex flex-wrap gap-2">
+					{skills.map(([name, count]) => (
+						<span
+							className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 font-mono text-indigo-700 text-xs"
+							key={name}
+						>
+							/{name}
+							{count > 1 && (
+								<span className="rounded-full bg-indigo-200 px-1.5 py-0.5 font-medium text-indigo-800 text-xs leading-none">
+									{count}
+								</span>
+							)}
+						</span>
+					))}
+				</div>
+			</div>
+		</details>
 	);
 }
 

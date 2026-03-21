@@ -1,4 +1,4 @@
-import { loadPrompt, store } from "@agentic-kanban/core";
+import { type ClaudePlugin, loadPrompt, store } from "@agentic-kanban/core";
 import { AGENT_QUEUE_NAME, getAgentQueue } from ".";
 
 export interface EnqueuePayload {
@@ -20,6 +20,7 @@ async function enqueueAgentJob(
 	workingDir: string,
 	promptPath: string,
 	payload: EnqueuePayload,
+	requiredPlugins?: ClaudePlugin[],
 ): Promise<string> {
 	const promptTemplate = await loadPrompt(promptPath);
 
@@ -52,6 +53,7 @@ async function enqueueAgentJob(
 		model: "haiku",
 		cwd: workingDir,
 		agentSessionId,
+		requiredPlugins,
 	});
 
 	return job.id ?? "";

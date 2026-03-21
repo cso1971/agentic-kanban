@@ -29,6 +29,10 @@ export function createEnqueueHandler(
 
 		let jobId: string;
 
+		const requiredPlugins = body.requiredPlugins as
+			| import("@agentic-kanban/core").ClaudePlugin[]
+			| undefined;
+
 		if (body.promptText) {
 			log.info`Manual enqueue (text): session=${agentSessionId}`;
 
@@ -39,6 +43,7 @@ export function createEnqueueHandler(
 				model: "haiku",
 				cwd: workingDir,
 				agentSessionId,
+				requiredPlugins,
 			});
 			jobId = job.id ?? "";
 		} else {
@@ -67,6 +72,7 @@ export function createEnqueueHandler(
 					reviewComment: body.reviewComment,
 					teammatesTable: body.teammatesTable,
 				},
+				requiredPlugins,
 			);
 		}
 

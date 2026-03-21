@@ -70,6 +70,7 @@ async function handleIssueEvent(
 			issueTitle: payload.object_attributes?.title ?? "",
 			issueDescription: payload.object_attributes?.description ?? "",
 		},
+		rule.plugins,
 	);
 
 	log.info`Queued job ${jobId} for rule="${rule.label}"`;
@@ -134,6 +135,7 @@ async function handleNoteEvent(
 		workingDir,
 		promptPath,
 		enqueuePayload,
+		rule.plugins,
 	);
 
 	log.info`Queued job ${jobId} for note on MR !${enqueuePayload.mrIid}`;

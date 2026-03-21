@@ -30,6 +30,7 @@ const worker = new Worker<JobData, JobResult>(
 			permissionMode: "bypassPermissions",
 			agentSessionId,
 			jobId: job.id,
+			requiredPlugins: options.requiredPlugins,
 		});
 
 		log.info`Job ${job.id} completed: ${result.result.slice(0, 200)}`;

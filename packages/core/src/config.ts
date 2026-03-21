@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import type { ClaudePlugin } from "#agent.ts";
 import { logger } from "#logger.ts";
 
 export interface WebhookRule {
@@ -13,6 +14,8 @@ export interface WebhookRule {
 	noteable_type?: string;
 	/** Path to the prompt file (relative to config file or absolute) */
 	prompt: string;
+	/** Claude plugins required for this rule's agent */
+	plugins?: ClaudePlugin[];
 }
 
 export interface AgentConfig {
