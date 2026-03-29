@@ -226,26 +226,18 @@ async function createUser(
 			return null;
 		}
 
-		log.info("Reusing existing user {username} (--force)", { username });
-		user = existingUser;
-
-		const existingTokens = await client.UserImpersonationTokens.all(user.id);
-		for (const t of existingTokens) {
-			if (t.name === "agent-token" && !t.revoked) {
-				log.info("Revoking existing token for {username}", { username });
-				await client.UserImpersonationTokens.revoke(user.id, t.id);
-			}
-		}
-	} else {
-		log.info("Creating user {username}", { username });
-		user = await client.Users.create({
-			email,
-			name: displayName,
-			username,
-			password: crypto.randomUUID(),
-			skipConfirmation: true,
-		});
+		log.info("Deleting existing user {username} (--force)", { username });
+		await client.Users.remove(existingUser.id);
 	}
+
+	log.info("Creating user {username}", { username });
+	user = await client.Users.create({
+		email,
+		name: displayName,
+		username,
+		password: crypto.randomUUID(),
+		skipConfirmation: true,
+	});
 
 	const avatarPath = join(configDir, "agents", agent.name, "avatar.png");
 

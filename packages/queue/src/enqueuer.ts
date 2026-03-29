@@ -18,9 +18,7 @@ export interface EnqueuePayload {
 function buildTeammatesTable(teammates?: string[]): string {
 	if (!teammates || teammates.length === 0) return "";
 	const header = "| Role | Spawn Prompt |\n|------|-------------|";
-	const rows = teammates.map(
-		(name) => `| ${name} | agents/${name}/agent.md |`,
-	);
+	const rows = teammates.map((name) => `| ${name} | agents/${name}/agent.md |`);
 	return `${header}\n${rows.join("\n")}`;
 }
 
@@ -38,7 +36,7 @@ async function enqueueAgentJob(
 	const serverPort = process.env.SERVER_PORT ?? "3000";
 	const serverUrl = process.env.SERVER_URL ?? `http://localhost:${serverPort}`;
 
-	const replacements: Record<string, string> = {
+	const contextVariables: Record<string, string> = {
 		"{{PROJECT_ID}}": payload.projectId,
 		"{{ISSUE_IID}}": payload.issueId ?? "",
 		"{{ISSUE_TITLE}}": payload.issueTitle ?? "",
@@ -55,21 +53,26 @@ async function enqueueAgentJob(
 		"{{SERVER_URL}}": serverUrl,
 		"{{AGENT_SESSION_ID}}": agentSessionId,
 		"{{ARTIFACT_DIR}}": await store.artifactsDirectory(agentSessionId),
-		"{{TEAMMATES_PROGRESS_REPORTING_INSTRUCTIONS}}": `**Append the following reporting instructions** to each teammate's prompt so they report their progress:
+	};
 
-## Progress Reporting
+	const teammatesProgressReportingInstructions = `## Teammate Progress Reporting
 
-You MUST report your progress by running this command after every significant action (responding to a round, voting, completing analysis):
+Every time you spawn a new teammate agent, you MUST append the following instructions to its prompt so that it reports everything it does:
 
-curl -s -X POST {{SERVER_URL}}/api/agent-sessions/{{AGENT_SESSION_ID}}/teammate-messages \\
+---
+
+You MUST report your progress by running this command after every significant action you take:
+
+curl -s -X POST ${serverUrl}/api/agent-sessions/${agentSessionId}/teammate-messages \\
   -H "Content-Type: application/json" \\
   -d '{"agentId": "<your-unique-id>", "agentName": "<your-role-name>", "content": "<brief description of what you just did>"}'
 
 Replace <your-unique-id> with a stable identifier for yourself (e.g. your role slug), <your-role-name> with your role name, and <content> with a brief summary of the action you took.
-`,
-	};
 
-	const values = Object.entries(replacements)
+---
+`;
+
+	const values = Object.entries(contextVariables)
 		.filter(([_, v]) => !!v && v.length > 0)
 		.map(([key, value]) => `#### ${key}\n ${value}`)
 		.join("\n");
@@ -80,15 +83,15 @@ You are working with these runtime values:
 
 Whenever you encounter a {{PLACEHOLDER}} in any file you read during this session, substitute it with the matching value from this Context.
 
-${values}`;
+${values}
 
-	const promptContent = promptTemplate.replaceAll("@CONTEXT_VARIABLES", "").trim();
+${teammatesProgressReportingInstructions}`;
 
 	const queue = getAgentQueue();
 
 	const job = await queue.add(AGENT_QUEUE_NAME, {
 		type: "agent",
-		prompt: promptContent,
+		prompt: promptTemplate,
 		model: "sonnet",
 		cwd: workingDir,
 		agentSessionId,
