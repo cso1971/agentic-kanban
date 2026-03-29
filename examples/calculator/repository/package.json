@@ -5,8 +5,11 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build",
-		"dev": "vite",
+		"dev": "bun --watch src/backend/index.ts & vite",
+		"dev:backend": "bun --watch src/backend/index.ts",
+		"dev:frontend": "vite",
 		"preview": "vite preview",
+		"start": "bun src/backend/index.ts",
 		"test": "bun test --pass-with-no-tests",
 		"typecheck": "tsgo --noEmit"
 	},

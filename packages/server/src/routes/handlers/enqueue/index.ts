@@ -70,7 +70,7 @@ export function createEnqueueHandler(
 					reviewerName: body.reviewerName,
 					discussionId: body.discussionId,
 					reviewComment: body.reviewComment,
-					teammatesTable: body.teammatesTable,
+					teammates: body.teammates,
 				},
 				requiredPlugins,
 			);

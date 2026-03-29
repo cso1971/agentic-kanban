@@ -1,3 +1,9 @@
+---
+name: Story Writing
+description: Domain knowledge about writing effective user stories, acceptance criteria, and decomposing epics
+type: skill
+---
+
 # Story Writing — User Stories and Requirements
 
 > Domain knowledge about writing effective user stories, acceptance criteria, and decomposing epics.

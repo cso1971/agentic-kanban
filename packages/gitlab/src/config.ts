@@ -21,8 +21,8 @@ export interface AgentConfig {
 
 export interface SetupConfig {
 	groupName: string;
-	projectName: string;
-	repoPath: string;
+	repoPaths: string[];
+	targetRepo: string;
 	webhookUrl: string;
 	configDir: string;
 	gitlabHost?: string;
@@ -31,9 +31,14 @@ export interface SetupConfig {
 }
 
 export interface SetupResult {
-	project: { id: number; webUrl: string };
+	group: { id: number; webUrl: string };
+	projects: Array<{
+		id: number;
+		name: string;
+		webUrl: string;
+		boardId: number | null;
+	}>;
 	users: Array<{ username: string; token: string }>;
-	boardId: number;
 	webhookId: number;
 }
 
@@ -112,14 +117,22 @@ async function writeTokenToEnv(
 async function findOrCreateGroup(
 	client: GitlabClient,
 	groupName: string,
+	force: boolean,
 ): Promise<Camelize<GroupSchema>> {
 	log.info("Checking if group {groupName} already exists", { groupName });
 	const existingGroups = await client.Groups.search(groupName);
 	const existing = existingGroups.find((g) => g.name === groupName);
 
 	if (existing) {
-		log.info("Group {groupName} already exists", { groupName });
-		return existing;
+		if (force) {
+			log.info("Deleting existing group {groupName} (--force)", {
+				groupName,
+			});
+			await client.Groups.remove(existing.id);
+		} else {
+			log.info("Group {groupName} already exists", { groupName });
+			return existing;
+		}
 	}
 
 	log.info("Creating group {groupName}", { groupName });
@@ -194,11 +207,10 @@ async function pushRepo(
 async function createUser(
 	client: GitlabClient,
 	agent: AgentConfig,
-	projectId: number,
 	configDir: string,
 	envPath: string,
 	force: boolean,
-): Promise<{ username: string; token: string } | null> {
+): Promise<{ username: string; token: string; userId: number } | null> {
 	const username = agentNameToUsername(agent.name);
 	const displayName = agentNameToDisplayName(agent.name);
 	const email = `${username}@agentic-kanban.local`;
@@ -272,29 +284,24 @@ async function createUser(
 	log.info("Writing token for {username} to .env", { username });
 	await writeTokenToEnv(username, token, envPath);
 
-	log.info("Adding {username} to project as developer", { username });
-	await client.ProjectMembers.add(projectId, 30, { userId: user.id });
-
-	return { username, token };
+	return { username, token, userId: user.id as number };
 }
 
 async function createUsers(
 	client: GitlabClient,
 	agents: AgentConfig[],
-	projectId: number,
 	configDir: string,
 	force: boolean,
-): Promise<Array<{ username: string; token: string }>> {
-	log.info("Creating users and adding them to the project");
-	const users: Array<{ username: string; token: string }> = [];
+): Promise<Array<{ username: string; token: string; userId: number }>> {
+	log.info("Creating users");
+	const users: Array<{ username: string; token: string; userId: number }> = [];
 	const envPath = join(process.cwd(), ".env");
 
-	for (const agent of agents) {
+	for (const agentConfig of agents) {
 		try {
 			const result = await createUser(
 				client,
-				agent,
-				projectId,
+				agentConfig,
 				configDir,
 				envPath,
 				force,
@@ -312,6 +319,31 @@ async function createUsers(
 	}
 
 	return users;
+}
+
+async function addUsersToProject(
+	client: GitlabClient,
+	users: Array<{ username: string; userId: number }>,
+	projectId: number,
+): Promise<void> {
+	for (const user of users) {
+		try {
+			log.info("Adding {username} to project as developer", {
+				username: user.username,
+			});
+			await client.ProjectMembers.add(projectId, 30, {
+				userId: user.userId,
+			});
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				log.error("failed to add user to project. {error}", { error });
+			} else {
+				log.error("failed to add user to project. {error}", {
+					error: String(error),
+				});
+			}
+		}
+	}
 }
 
 async function createLabels(
@@ -404,7 +436,7 @@ async function registerWebhook(
 	projectId: number,
 	webhookUrl: string,
 ): Promise<number> {
-	log.info("Registering webhook at {webhookUrl}", { webhookUrl });
+	log.info("Registering webhook on project at {webhookUrl}", { webhookUrl });
 
 	const webhook = await client.ProjectHooks.add(projectId, webhookUrl, {
 		pushEvents: true,
@@ -433,55 +465,72 @@ export async function setupGitLabProject(
 	const columns = await readLifecycle(config.configDir);
 	const force = config.force ?? false;
 
-	const group = await findOrCreateGroup(client, config.groupName);
-	const result = await findOrCreateProject(
-		client,
-		config.projectName,
-		group.id,
-		force,
-	);
+	const group = await findOrCreateGroup(client, config.groupName, force);
 
-	if (!result.created) {
-		return {
-			project: { id: result.project.id, webUrl: result.project.webUrl },
-			users: [],
-			boardId: 0,
-			webhookId: 0,
-		};
+	const users = await createUsers(client, agents, config.configDir, force);
+
+	const targetProjectName = config.targetRepo.split("/").pop() as string;
+
+	const projects: Array<{
+		id: number;
+		name: string;
+		webUrl: string;
+		boardId: number | null;
+	}> = [];
+
+	let webhookId = 0;
+
+	for (const repoPath of config.repoPaths) {
+		const projectName = repoPath.split("/").pop() as string;
+		const isTarget = projectName === targetProjectName;
+
+		log.info("Setting up project {projectName} from {repoPath}", {
+			projectName,
+			repoPath,
+		});
+
+		const result = await findOrCreateProject(
+			client,
+			projectName,
+			group.id,
+			force,
+		);
+
+		if (result.created) {
+			await pushRepo(
+				repoPath,
+				gitlabHost,
+				group.fullPath,
+				projectName,
+				config.adminToken,
+			);
+		}
+
+		let boardId: number | null = null;
+
+		if (isTarget) {
+			await addUsersToProject(client, users, result.project.id);
+			await createLabels(client, result.project.id, columns);
+			boardId = await createBoard(client, result.project.id, columns);
+			webhookId = await registerWebhook(
+				client,
+				result.project.id,
+				config.webhookUrl,
+			);
+		}
+
+		projects.push({
+			id: result.project.id,
+			name: projectName,
+			webUrl: result.project.webUrl,
+			boardId,
+		});
 	}
 
-	const { project } = result;
-
-	await pushRepo(
-		config.repoPath,
-		gitlabHost,
-		group.fullPath,
-		config.projectName,
-		config.adminToken,
-	);
-
-	const users = await createUsers(
-		client,
-		agents,
-		project.id,
-		config.configDir,
-		force,
-	);
-
-	await createLabels(client, project.id, columns);
-
-	const boardId = await createBoard(client, project.id, columns);
-
-	const webhookId = await registerWebhook(
-		client,
-		project.id,
-		config.webhookUrl,
-	);
-
 	return {
-		project: { id: project.id, webUrl: project.webUrl },
-		users,
-		boardId,
+		group: { id: group.id, webUrl: group.webUrl },
+		projects,
+		users: users.map(({ username, token }) => ({ username, token })),
 		webhookId,
 	};
 }

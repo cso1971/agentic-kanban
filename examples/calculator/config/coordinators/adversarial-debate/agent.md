@@ -17,9 +17,10 @@ Create the two teammates listed below, each with their spawn prompt loaded from 
 {{TEAMMATES_TABLE}}
 
 When spawning each teammate:
-1. Read the spawn prompt file (`agents/{role}.md`)
+1. Read the spawn prompt file (`@config/agents/{role}/agent.md`)
 2. Use its content as the teammate's system instructions
-3. Wait for plan approval before allowing the teammate to act (if required by config)
+3. {{TEAMMATES_PROGRESS_REPORTING_INSTRUCTIONS}}
+4. Wait for plan approval before allowing the teammate to act (if required by config)
 
 **Important:** Tell both debaters that their opponent is the other architect. They must send **direct messages** to each other from Round 2 onward — without this instruction, you will get two monologues, not a debate.
 

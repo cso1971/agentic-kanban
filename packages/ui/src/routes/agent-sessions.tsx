@@ -177,6 +177,22 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 				</div>
 			</details>
 
+			{session.appendSystemPrompt && (
+				<details className="group mb-4">
+					<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+						<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+							&#9654;
+						</span>
+						System Prompt
+					</summary>
+					<div className="prose prose-sm max-w-none rounded-lg bg-amber-50 p-3">
+						<ReactMarkdown remarkPlugins={[remarkGfm]}>
+							{session.appendSystemPrompt}
+						</ReactMarkdown>
+					</div>
+				</details>
+			)}
+
 			{session.result && (
 				<details className="group mb-4">
 					<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
@@ -201,6 +217,11 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 			)}
 
 			<SkillsUsedSection messages={messages} />
+
+			<TeammateMessagesSection
+				isRunning={session.status === "running"}
+				sessionId={session.id}
+			/>
 
 			<ArtifactsSection
 				isRunning={session.status === "running"}
@@ -266,6 +287,101 @@ function SkillsUsedSection({
 			</div>
 		</details>
 	);
+}
+
+function TeammateMessagesSection({
+	sessionId,
+	isRunning,
+}: {
+	sessionId: string;
+	isRunning: boolean;
+}) {
+	const { data: teammateMessages } = $api.useQuery(
+		"get",
+		"/api/agent-sessions/{id}/teammate-messages",
+		{ params: { path: { id: sessionId } } },
+		{
+			refetchInterval: isRunning ? 3000 : false,
+		},
+	);
+
+	if (!teammateMessages || teammateMessages.length === 0) {
+		return null;
+	}
+
+	// Group messages by agentName
+	const grouped = new Map<string, typeof teammateMessages>();
+	for (const msg of teammateMessages) {
+		const existing = grouped.get(msg.agentName) ?? [];
+		existing.push(msg);
+		grouped.set(msg.agentName, existing);
+	}
+
+	return (
+		<details className="group mb-4">
+			<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+					&#9654;
+				</span>
+				Teammate Activity ({teammateMessages.length})
+			</summary>
+			<div className="space-y-3">
+				{[...grouped.entries()].map(([agentName, messages]) => (
+					<div
+						className="rounded-lg border border-gray-200 bg-white"
+						key={agentName}
+					>
+						<div className="flex items-center gap-2 border-gray-100 border-b px-4 py-2">
+							<span
+								className="inline-block h-2 w-2 rounded-full"
+								style={{
+									backgroundColor: agentColor(agentName),
+								}}
+							/>
+							<span className="font-medium text-gray-900 text-sm">
+								{agentName}
+							</span>
+							<span className="text-gray-400 text-xs">
+								{messages.length} message{messages.length !== 1 ? "s" : ""}
+							</span>
+						</div>
+						<div className="divide-y divide-gray-50 px-4">
+							{messages.map((msg, i) => (
+								<div className="py-2" key={i}>
+									<ReactMarkdown remarkPlugins={[remarkGfm]}>
+										{msg.content}
+									</ReactMarkdown>
+									<span className="text-gray-400 text-xs">
+										{new Date(msg.timestamp).toLocaleTimeString()}
+									</span>
+								</div>
+							))}
+						</div>
+					</div>
+				))}
+			</div>
+		</details>
+	);
+}
+
+const AGENT_COLORS = [
+	"#8b5cf6",
+	"#3b82f6",
+	"#10b981",
+	"#f59e0b",
+	"#ec4899",
+	"#14b8a6",
+	"#ef4444",
+	"#6366f1",
+];
+
+function agentColor(name: string): string {
+	let hash = 0;
+	for (let i = 0; i < name.length; i++) {
+		hash = (hash << 5) - hash + name.charCodeAt(i);
+		hash |= 0;
+	}
+	return AGENT_COLORS[Math.abs(hash) % AGENT_COLORS.length];
 }
 
 function ArtifactsSection({

@@ -1,3 +1,9 @@
+---
+name: glab CLI
+description: Domain knowledge for interacting with GitLab using the glab CLI for issues, MRs, and workflows
+type: skill
+---
+
 # glab CLI — GitLab Command-Line Reference
 
 > Domain knowledge for interacting with GitLab using the `glab` CLI.

@@ -5,5 +5,3 @@
 - how to use glab skill within the worker? should be in working directory
 - show total cost of sessions
 - add sessionid to route
-- add skill creator to config to test the skills
-- how to make never-ending claude code sessions?

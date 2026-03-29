@@ -1,3 +1,9 @@
+---
+name: Testing Strategy
+description: Domain knowledge about testing approaches, patterns, and conventions for distributed systems
+type: skill
+---
+
 # Testing Strategy — Distributed Playground
 
 > Domain knowledge about testing approaches, patterns, and conventions for the distributed-playground .NET 9 microservices codebase.

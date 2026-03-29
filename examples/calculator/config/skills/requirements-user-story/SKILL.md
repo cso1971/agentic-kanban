@@ -1,3 +1,9 @@
+---
+name: Write User Story
+description: Creates well-formed user stories with acceptance criteria from feature descriptions
+type: skill
+---
+
 # Skill: Write User Story
 
 ## Agent

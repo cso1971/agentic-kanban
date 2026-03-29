@@ -15,6 +15,7 @@ export const AgentSessionSchema = z
 		numTurns: z.number().optional(),
 		model: z.string().optional(),
 		jobId: z.string().optional(),
+		appendSystemPrompt: z.string().optional(),
 	})
 	.openapi("AgentSession");
 
@@ -129,3 +130,20 @@ export const ArtifactContentSchema = z
 		content: z.string(),
 	})
 	.openapi("ArtifactContent");
+
+export const TeammateMessageSchema = z
+	.object({
+		timestamp: z.string(),
+		agentId: z.string(),
+		agentName: z.string(),
+		content: z.string(),
+	})
+	.openapi("TeammateMessage");
+
+export const TeammateMessageBodySchema = z
+	.object({
+		agentId: z.string().openapi({ description: "Unique identifier for the teammate agent" }),
+		agentName: z.string().openapi({ description: "Display name / role of the teammate agent" }),
+		content: z.string().openapi({ description: "Message content describing what the agent is doing" }),
+	})
+	.openapi("TeammateMessageBody");

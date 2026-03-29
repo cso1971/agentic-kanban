@@ -18,5 +18,6 @@ export {
 	type AgentSession,
 	type AgentSessionMessage,
 	type ArtifactFile,
+	type TeammateMessage,
 	store,
 } from "#store.ts";

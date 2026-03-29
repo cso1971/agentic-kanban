@@ -19,6 +19,8 @@ export interface AgentSession {
 	claudeSessionId?: string;
 	/** Associated queue job ID for correlation */
 	jobId?: string;
+	/** Additional system prompt injected via --append-system-prompt */
+	appendSystemPrompt?: string;
 }
 
 export interface AgentSessionMessage {
@@ -26,6 +28,13 @@ export interface AgentSessionMessage {
 	type: string;
 	message?: ParsedMessage;
 	raw: unknown;
+}
+
+export interface TeammateMessage {
+	timestamp: string;
+	agentId: string;
+	agentName: string;
+	content: string;
 }
 
 const DEFAULT_STORE_DIR = "../../.agent-sessions";
@@ -43,6 +52,7 @@ export async function createAgentSession(
 	prompt: string,
 	cwd: string,
 	jobId?: string,
+	appendSystemPrompt?: string,
 ): Promise<AgentSession> {
 	const session: AgentSession = {
 		id,
@@ -51,6 +61,7 @@ export async function createAgentSession(
 		cwd,
 		startedAt: new Date().toISOString(),
 		jobId,
+		appendSystemPrompt,
 	};
 
 	const dir = agentSessionDir(id);
@@ -232,6 +243,31 @@ export async function getAgentSessionMessages(
 	}
 }
 
+export async function appendTeammateMessage(
+	id: string,
+	message: TeammateMessage,
+): Promise<void> {
+	const filePath = join(agentSessionDir(id), "teammate-messages.jsonl");
+	await writeFile(filePath, `${JSON.stringify(message)}\n`, { flag: "a" });
+}
+
+export async function getTeammateMessages(
+	id: string,
+): Promise<TeammateMessage[]> {
+	try {
+		const data = await readFile(
+			join(agentSessionDir(id), "teammate-messages.jsonl"),
+			"utf-8",
+		);
+		return data
+			.split("\n")
+			.filter(Boolean)
+			.map((line) => JSON.parse(line));
+	} catch {
+		return [];
+	}
+}
+
 export const store = {
 	get: getAgentSession,
 	update: updateAgentSession,
@@ -241,4 +277,6 @@ export const store = {
 	artifactsDirectory: getAgentSessionArtifacts,
 	listArtifacts: listAgentSessionArtifacts,
 	getArtifactContent: getAgentSessionArtifactContent,
+	appendTeammateMessage,
+	getTeammateMessages,
 };

@@ -71,6 +71,8 @@ export interface RunAgentOptions {
 	permissionMode?: "default" | "bypassPermissions";
 	/** Plugins that must be installed before running */
 	requiredPlugins?: ClaudePlugin[];
+	/** Additional system prompt appended via --append-system-prompt */
+	appendSystemPrompt?: string;
 }
 
 export interface RunAgentResult {
@@ -113,7 +115,7 @@ export async function runAgent(
 		});
 		log.info`Resuming session ${sessionId} (claude session: ${resumeClaudeSessionId})`;
 	} else {
-		await createAgentSession(sessionId, options.prompt, cwd, options.jobId);
+		await createAgentSession(sessionId, options.prompt, cwd, options.jobId, options.appendSystemPrompt);
 	}
 
 	const args: string[] = [
@@ -138,6 +140,10 @@ export async function runAgent(
 
 	if (options.permissionMode === "bypassPermissions") {
 		args.push("--dangerously-skip-permissions");
+	}
+
+	if (options.appendSystemPrompt) {
+		args.push("--append-system-prompt", options.appendSystemPrompt);
 	}
 
 	if (options.extraArgs) {

@@ -1,3 +1,9 @@
+---
+name: Security Audit
+description: Performs security audits on code changes, identifying vulnerabilities and recommending mitigations
+type: skill
+---
+
 # Skill: Security Audit
 
 ## Agent

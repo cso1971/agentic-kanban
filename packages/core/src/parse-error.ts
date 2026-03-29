@@ -15,7 +15,7 @@ export function parseError(json: string | undefined): ParsedError | undefined {
 		const msg = JSON.parse(json) as SDKResultError;
 		return parseSDKMessage(msg);
 	} catch (error) {
-		logger.core.error`Failed to parse error JSON: ${error}`;
+		logger.core.error`Failed to parse error JSON: ${json} for error: ${error}`;
 		return undefined;
 	}
 }

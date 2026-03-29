@@ -17,9 +17,10 @@ Create the teammates listed below, each with their spawn prompt loaded from the 
 {{TEAMMATES_TABLE}}
 
 When spawning each teammate:
-1. Read the spawn prompt file (`agents/{role}.md`)
+1. Read the spawn prompt file (`@config/agents/{role}/agent.md`)
 2. Use its content as the teammate's system instructions
-3. Wait for plan approval before allowing the teammate to act (if required by config)
+3. {{TEAMMATES_PROGRESS_REPORTING_INSTRUCTIONS}}
+4. Wait for plan approval before allowing the teammate to act (if required by config)
 
 **Important:** Tell all investigators that the other investigators are their peers. From Round 2 onward they must **send direct messages** to each other when they find evidence that supports or refutes another's hypothesis — without this instruction, you will get parallel monologues, not a convergent investigation.
 

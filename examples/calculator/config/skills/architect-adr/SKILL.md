@@ -1,3 +1,9 @@
+---
+name: Create Architecture Decision Record
+description: Documents significant architectural decisions as ADRs with context, options, and rationale
+type: skill
+---
+
 # Skill: Create Architecture Decision Record
 
 ## Agent

@@ -1,14 +1,28 @@
 import { useState } from "react";
-import { add, divide, multiply, subtract } from "./index.ts";
 
 type Operator = "+" | "-" | "×" | "÷";
 
-const operations: Record<Operator, (a: number, b: number) => number> = {
-	"+": add,
-	"-": subtract,
-	"×": multiply,
-	"÷": divide,
+const operatorToEndpoint: Record<Operator, string> = {
+	"+": "add",
+	"-": "subtract",
+	"×": "multiply",
+	"÷": "divide",
 };
+
+const API_URL = "http://localhost:3001";
+
+async function callBackend(op: Operator, a: number, b: number): Promise<number> {
+	const res = await fetch(`${API_URL}/${operatorToEndpoint[op]}`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ a, b }),
+	});
+	const data = (await res.json()) as { result?: number; error?: string };
+	if (!res.ok || data.error) {
+		throw new Error(data.error ?? "Unknown error");
+	}
+	return data.result as number;
+}
 
 export function App() {
 	const [display, setDisplay] = useState("0");
@@ -36,12 +50,12 @@ export function App() {
 		}
 	}
 
-	function handleOperator(nextOp: Operator) {
+	async function handleOperator(nextOp: Operator) {
 		const current = Number.parseFloat(display);
 
 		if (firstOperand !== null && operator && !waitingForSecond) {
 			try {
-				const result = operations[operator](firstOperand, current);
+				const result = await callBackend(operator, firstOperand, current);
 				const resultStr = String(result);
 				setDisplay(resultStr);
 				setFirstOperand(result);
@@ -60,12 +74,12 @@ export function App() {
 		setWaitingForSecond(true);
 	}
 
-	function calculate() {
+	async function handleEquals() {
 		if (firstOperand === null || operator === null) return;
 
 		const current = Number.parseFloat(display);
 		try {
-			const result = operations[operator](firstOperand, current);
+			const result = await callBackend(operator, firstOperand, current);
 			setDisplay(String(result));
 			setFirstOperand(null);
 			setOperator(null);
@@ -203,7 +217,7 @@ export function App() {
 					</button>
 					<button
 						type="button"
-						onClick={calculate}
+						onClick={handleEquals}
 						className={`${btn} bg-orange-500 text-white`}
 					>
 						=

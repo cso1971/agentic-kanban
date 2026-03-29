@@ -1,3 +1,9 @@
+---
+name: Code Review
+description: Reviews code changes for correctness, convention compliance, type safety, and test coverage
+type: skill
+---
+
 # Skill: Code Review
 
 ## Agent

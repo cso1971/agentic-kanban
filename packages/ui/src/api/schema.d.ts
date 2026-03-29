@@ -271,6 +271,90 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	"/api/agent-sessions/{id}/teammate-messages": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Get teammate messages
+		 * @description Returns all teammate messages for a specific agent session
+		 */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Agent Session ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description List of teammate messages */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["TeammateMessage"][];
+					};
+				};
+			};
+		};
+		put?: never;
+		/**
+		 * Append a teammate message
+		 * @description Appends a message from a teammate agent to the coordinator's session
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description Agent Session ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": components["schemas"]["TeammateMessageBody"];
+				};
+			};
+			responses: {
+				/** @description Message appended */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							/** @enum {string} */
+							status: "ok";
+						};
+					};
+				};
+				/** @description Agent session not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": components["schemas"]["ErrorResponse"];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	"/api/config/tree": {
 		parameters: {
 			query?: never;
@@ -687,6 +771,7 @@ export interface components {
 			numTurns?: number;
 			model?: string;
 			jobId?: string;
+			appendSystemPrompt?: string;
 		};
 		ErrorResponse: {
 			error: string;
@@ -772,6 +857,20 @@ export interface components {
 			name: string;
 			content: string;
 		};
+		TeammateMessage: {
+			timestamp: string;
+			agentId: string;
+			agentName: string;
+			content: string;
+		};
+		TeammateMessageBody: {
+			/** @description Unique identifier for the teammate agent */
+			agentId: string;
+			/** @description Display name / role of the teammate agent */
+			agentName: string;
+			/** @description Message content describing what the agent is doing */
+			content: string;
+		};
 		ConfigTreeResponse: {
 			tree: components["schemas"]["ConfigTreeNode"][];
 		};
@@ -834,8 +933,8 @@ export interface components {
 			reviewerName?: string;
 			discussionId?: string;
 			reviewComment?: string;
-			/** @description Markdown table of teammates to inject into coordinator prompts as {{TEAMMATES_TABLE}} */
-			teammatesTable?: string;
+			/** @description List of teammate agent names to inject into coordinator prompts as {{TEAMMATES_TABLE}} */
+			teammates?: string[];
 		};
 		IntegrationsResponse: {
 			configDir: string;

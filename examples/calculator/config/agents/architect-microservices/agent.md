@@ -64,7 +64,7 @@ You MUST respond using this structure (from `CLAUDE.md`):
 
 ## Domain Skill
 
-Load and use the **Microservices Advocate** skill at `.claude/skills/microservices-advocate/SKILL.md` for:
+Load and use the **Microservices Advocate** skill at `@.claude/skills/microservices-advocate/{SKILL}.md` for:
 
 - When to prefer a distributed approach (bounded context, team autonomy, scaling, blast radius)
 - Evidence: DDD, event-driven, resilience, ownership

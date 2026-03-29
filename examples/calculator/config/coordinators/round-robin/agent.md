@@ -19,9 +19,10 @@ Create the teammates listed below, each with their spawn prompt loaded from the 
 {{TEAMMATES_TABLE}}
 
 When spawning each teammate:
-1. Read the spawn prompt file (`agents/{role}.md`)
+1. Read the spawn prompt file (`@config/agents/{role}/agent.md`)
 2. Use its content as the teammate's system instructions
-3. Wait for plan approval before allowing the teammate to act
+3. {{TEAMMATES_PROGRESS_REPORTING_INSTRUCTIONS}}
+4. Wait for plan approval before allowing the teammate to act
 
 ---
 

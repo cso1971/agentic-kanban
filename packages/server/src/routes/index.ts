@@ -5,8 +5,10 @@ import {
 	getAgentSessionArtifactRoute,
 	getAgentSessionMessagesRoute,
 	getAgentSessionRoute,
+	getTeammateMessagesRoute,
 	listAgentSessionArtifactsRoute,
 	listAgentSessionsRoute,
+	postTeammateMessageRoute,
 } from "#routes/agent-sessions.ts";
 import {
 	configImageRoute,
@@ -19,8 +21,10 @@ import {
 	getAgentSessionArtifactHandler,
 	getAgentSessionHandler,
 	getAgentSessionMessagesHandler,
+	getTeammateMessagesHandler,
 	listAgentSessionArtifactsHandler,
 	listAgentSessionsHandler,
+	postTeammateMessageHandler,
 } from "#routes/handlers/agent-sessions/index.ts";
 import {
 	createConfigImageHandler,
@@ -53,6 +57,8 @@ export function registerRoutes(app: OpenAPIHono, ctx: RouteContext): void {
 	app.openapi(getAgentSessionMessagesRoute, getAgentSessionMessagesHandler);
 	app.openapi(listAgentSessionArtifactsRoute, listAgentSessionArtifactsHandler);
 	app.openapi(getAgentSessionArtifactRoute, getAgentSessionArtifactHandler);
+	app.openapi(postTeammateMessageRoute, postTeammateMessageHandler);
+	app.openapi(getTeammateMessagesRoute, getTeammateMessagesHandler);
 
 	// Config
 	const configDir = resolve(dirname(resolve(ctx.configPath)));

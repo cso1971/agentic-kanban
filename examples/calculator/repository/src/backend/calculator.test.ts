@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { add, divide, multiply, subtract } from "./index";
+import { add, divide, multiply, subtract } from "./calculator";
 
 describe("add", () => {
 	test("adds two positive numbers", () => {

@@ -22,11 +22,11 @@ export const EnqueueBodySchema = z
 		reviewerName: z.string().optional(),
 		discussionId: z.string().optional(),
 		reviewComment: z.string().optional(),
-		teammatesTable: z
-			.string()
+		teammates: z
+			.array(z.string())
 			.optional()
 			.describe(
-				"Markdown table of teammates to inject into coordinator prompts as {{TEAMMATES_TABLE}}",
+				"List of teammate agent names to inject into coordinator prompts as {{TEAMMATES_TABLE}}",
 			),
 		requiredPlugins: z
 			.array(z.string())

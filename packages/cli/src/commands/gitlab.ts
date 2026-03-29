@@ -98,13 +98,19 @@ export function registerGitlabCommand(program: Command) {
 
 	gitlab
 		.command("config")
-		.description("Configure a GitLab project for agent integration")
+		.description("Configure GitLab projects for agent integration")
 		.requiredOption("-g, --group <name>", "Group name")
-		.requiredOption("-p, --project <name>", "Project name")
-		.requiredOption("-r, --repo <path>", "Repository folder to upload")
+		.requiredOption(
+			"-r, --repo <paths...>",
+			"Repository folders to upload (folder name used as project name)",
+		)
+		.requiredOption(
+			"-t, --target <path>",
+			"Target repository for kanban board and webhook (must be one of --repo paths)",
+		)
 		.requiredOption("-w, --webhook <url>", "Webhook URL")
 		.requiredOption("-c, --config <path>", "Config directory path", "./config")
-		.option("-f, --force", "Delete existing project and recreate", false)
+		.option("-f, --force", "Delete existing projects and recreate", false)
 		.action(async (options) => {
 			const token = process.env.GITLAB_TOKEN;
 
@@ -115,8 +121,8 @@ export function registerGitlabCommand(program: Command) {
 
 			await setupGitLabProject({
 				groupName: options.group,
-				projectName: options.project,
-				repoPath: resolve(options.repo),
+				repoPaths: (options.repo as string[]).map((r: string) => resolve(r)),
+				targetRepo: resolve(options.target),
 				webhookUrl: options.webhook,
 				configDir: resolve(options.config),
 				gitlabHost: process.env.GITLAB_HOST,

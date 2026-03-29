@@ -1,3 +1,9 @@
+---
+name: Implement Feature
+description: Implements a feature from a user story, including code changes, tests, and a merge request
+type: skill
+---
+
 # Skill: Implement Feature
 
 ## Agent

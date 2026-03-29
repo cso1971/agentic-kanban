@@ -23,14 +23,15 @@ Authenticate with `$AGENT_COORDINATOR_TOKEN` and `$GITLAB_HOST`.
 
 1. **Clone the repository**: clone the repository using `glab repo clone {{PROJECT_ID}}` and ensure you are on the default branch with a clean working tree.
 
-1. **Create a feature branch using worktree**: create a new git worktree for isolated development. Derive the branch name from the story title:
+1. **Create a feature branch using worktree**: inside the cloned repository, create a new git worktree for isolated development. Derive the branch name from the story title:
    - Use `feature/{{TOPIC_SLUG}}` if the story is a new feature
    - Use `fix/{{TOPIC_SLUG}}` if the story is a bug fix
    - Determine the type from the story's labels or description
 
    ```bash
-   git worktree add -b <branch-name> ../worktree-{{TOPIC_SLUG}} origin/main
-   cd ../worktree-{{TOPIC_SLUG}}
+   cd <cloned-repo-directory>
+   git worktree add -b <branch-name> ../<branch-name> origin/main
+   cd ../<branch-name>
    ```
 
 1. **Implement the story**: work through each task in order, implementing the changes described in their acceptance criteria. For each task:

@@ -1,3 +1,9 @@
+---
+name: Refine Requirements
+description: Analyzes and refines vague or incomplete requirements into actionable items
+type: skill
+---
+
 # Skill: Refine Requirements
 
 ## Agent

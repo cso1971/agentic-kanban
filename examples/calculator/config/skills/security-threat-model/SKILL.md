@@ -1,3 +1,9 @@
+---
+name: Threat Modeling
+description: Creates threat models for features or system components, identifying attack surfaces and security controls
+type: skill
+---
+
 # Skill: Threat Modeling
 
 ## Agent

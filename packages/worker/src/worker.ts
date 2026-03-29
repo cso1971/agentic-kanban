@@ -31,6 +31,7 @@ const worker = new Worker<JobData, JobResult>(
 			agentSessionId,
 			jobId: job.id,
 			requiredPlugins: options.requiredPlugins,
+			appendSystemPrompt: options.appendSystemPrompt,
 		});
 
 		log.info`Job ${job.id} completed: ${result.result.slice(0, 200)}`;
