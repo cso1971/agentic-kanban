@@ -1,3 +1,4 @@
+export { askAgentSessionHandler } from "#routes/handlers/agent-sessions/ask.ts";
 export { getAgentSessionHandler } from "#routes/handlers/agent-sessions/get.ts";
 export { getAgentSessionArtifactHandler } from "#routes/handlers/agent-sessions/get-artifact.ts";
 export { getAgentSessionMessagesHandler } from "#routes/handlers/agent-sessions/get-messages.ts";

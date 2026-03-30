@@ -2,6 +2,7 @@ import { dirname, resolve } from "node:path";
 import type { AgentConfig } from "@agentic-kanban/core";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import {
+	askAgentSessionRoute,
 	getAgentSessionArtifactRoute,
 	getAgentSessionMessagesRoute,
 	getAgentSessionRoute,
@@ -18,6 +19,7 @@ import {
 } from "#routes/config.ts";
 import { enqueueRoute } from "#routes/enqueue.ts";
 import {
+	askAgentSessionHandler,
 	getAgentSessionArtifactHandler,
 	getAgentSessionHandler,
 	getAgentSessionMessagesHandler,
@@ -59,6 +61,7 @@ export function registerRoutes(app: OpenAPIHono, ctx: RouteContext): void {
 	app.openapi(getAgentSessionArtifactRoute, getAgentSessionArtifactHandler);
 	app.openapi(postTeammateMessageRoute, postTeammateMessageHandler);
 	app.openapi(getTeammateMessagesRoute, getTeammateMessagesHandler);
+	app.openapi(askAgentSessionRoute, askAgentSessionHandler);
 
 	// Config
 	const configDir = resolve(dirname(resolve(ctx.configPath)));

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { $api } from "#api/client.ts";
-import { type TreeNode, detectUsedVars, filterRalphFiles } from "./shared.ts";
+import { detectUsedVars, filterRalphFiles, type TreeNode } from "./shared.ts";
 
 interface RalphTabProps {
 	tree: TreeNode[] | undefined;
@@ -108,9 +108,7 @@ export function RalphTab({
 
 				{selectedPrompt && promptContent?.content && (
 					<div className="mt-4">
-						<h3 className="mb-2 font-medium text-gray-700 text-sm">
-							Preview
-						</h3>
+						<h3 className="mb-2 font-medium text-gray-700 text-sm">Preview</h3>
 						<pre className="max-h-48 overflow-auto rounded-lg bg-gray-50 p-4 font-mono text-gray-700 text-sm">
 							{promptContent.content}
 						</pre>

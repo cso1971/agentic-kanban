@@ -22,6 +22,11 @@
 			"event": "note",
 			"action": "create",
 			"noteable_type": "MergeRequest",
+			"prompt": "./triggers/answer-comment.md"
+		},
+		{
+			"event": "merge_request",
+			"action": "open",
 			"prompt": "./triggers/review.md"
 		}
 	]

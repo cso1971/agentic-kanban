@@ -99,3 +99,57 @@ puts token.token
 		scopes,
 	};
 }
+
+export interface RegisterRunnerOptions {
+	runnerContainerName?: string;
+	gitlabContainerName?: string;
+}
+
+/**
+ * Registers the GitLab Runner container with the local GitLab instance.
+ * Gets the registration token via `gitlab-rails`, then registers the runner via `docker exec`.
+ */
+export async function registerRunner(
+	options: RegisterRunnerOptions = {},
+): Promise<void> {
+	const {
+		runnerContainerName = "gitlab-runner",
+		gitlabContainerName = "gitlab",
+	} = options;
+
+	log.info("Checking if runner is already registered");
+	const existingConfig =
+		await $`docker exec ${runnerContainerName} cat /etc/gitlab-runner/config.toml`
+			.text()
+			.catch(() => "");
+
+	if (existingConfig.includes("[[runners]]")) {
+		log.info("Runner already registered, skipping");
+		return;
+	}
+
+	log.info("Fetching runner registration token from GitLab");
+	const registrationToken =
+		await $`docker exec ${gitlabContainerName} gitlab-rails runner ${"puts Gitlab::CurrentSettings.current_application_settings.runners_registration_token"}`
+			.text()
+			.catch((error) => {
+				throw new Error(
+					`Failed to get runner registration token. Is the GitLab container "${gitlabContainerName}" running?\n${error.message}`,
+				);
+			});
+
+	const token = registrationToken.trim();
+	if (!token) {
+		throw new Error("Failed to get runner registration token from GitLab");
+	}
+
+	// The runner container connects to GitLab via the docker network hostname
+	const internalGitlabUrl = `http://${gitlabContainerName}:80`;
+
+	log.info("Registering runner in container {runnerContainerName}", {
+		runnerContainerName,
+	});
+	await $`docker exec ${runnerContainerName} gitlab-runner register --non-interactive --url ${internalGitlabUrl} --registration-token ${token} --executor docker --docker-image alpine:latest --docker-network-mode agents_default --clone-url ${internalGitlabUrl} --description docker-runner --run-untagged=true`;
+
+	log.info("GitLab Runner registered successfully");
+}

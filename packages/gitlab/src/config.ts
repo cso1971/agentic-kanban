@@ -3,6 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { agent, env, logger } from "@agentic-kanban/core";
 import {
+	AccessLevel,
 	type Camelize,
 	Gitlab,
 	type GroupSchema,
@@ -209,7 +210,6 @@ async function createUser(
 	agent: AgentConfig,
 	configDir: string,
 	envPath: string,
-	force: boolean,
 ): Promise<{ username: string; token: string; userId: number } | null> {
 	const username = agentNameToUsername(agent.name);
 	const displayName = agentNameToDisplayName(agent.name);
@@ -221,13 +221,8 @@ async function createUser(
 	let user: { id: number };
 
 	if (existingUser) {
-		if (!force) {
-			log.info("User {username} already exists, skipping", { username });
-			return null;
-		}
-
-		log.info("Deleting existing user {username} (--force)", { username });
-		await client.Users.remove(existingUser.id);
+		log.info("User {username} already exists, skipping", { username });
+		return null;
 	}
 
 	log.info("Creating user {username}", { username });
@@ -283,7 +278,6 @@ async function createUsers(
 	client: GitlabClient,
 	agents: AgentConfig[],
 	configDir: string,
-	force: boolean,
 ): Promise<Array<{ username: string; token: string; userId: number }>> {
 	log.info("Creating users");
 	const users: Array<{ username: string; token: string; userId: number }> = [];
@@ -291,13 +285,7 @@ async function createUsers(
 
 	for (const agentConfig of agents) {
 		try {
-			const result = await createUser(
-				client,
-				agentConfig,
-				configDir,
-				envPath,
-				force,
-			);
+			const result = await createUser(client, agentConfig, configDir, envPath);
 			if (result) {
 				users.push(result);
 			}
@@ -323,7 +311,7 @@ async function addUsersToProject(
 			log.info("Adding {username} to project as developer", {
 				username: user.username,
 			});
-			await client.ProjectMembers.add(projectId, 30, {
+			await client.ProjectMembers.add(projectId, AccessLevel.DEVELOPER, {
 				userId: user.userId,
 			});
 		} catch (error: unknown) {
@@ -442,6 +430,121 @@ async function registerWebhook(
 	return webhook.id;
 }
 
+export interface TeardownConfig {
+	groupName: string;
+	gitlabHost?: string;
+	adminToken: string;
+	/** Max time in ms to wait for a deletion to complete (default 60000) */
+	timeoutMs?: number;
+	/** Polling interval in ms (default 2000) */
+	pollIntervalMs?: number;
+}
+
+async function waitForDeletion(
+	check: () => Promise<boolean>,
+	timeoutMs: number,
+	pollIntervalMs: number,
+	label: string,
+): Promise<void> {
+	const deadline = Date.now() + timeoutMs;
+
+	while (Date.now() < deadline) {
+		const exists = await check();
+		if (!exists) {
+			log.info("{label} deleted successfully", { label });
+			return;
+		}
+		await new Promise((r) => setTimeout(r, pollIntervalMs));
+	}
+
+	log.warn("{label} deletion timed out after {timeoutMs}ms", {
+		label,
+		timeoutMs,
+	});
+}
+
+export async function teardownGitLabProject(
+	config: TeardownConfig,
+): Promise<void> {
+	const gitlabHost = config.gitlabHost ?? "https://gitlab.com";
+	const timeoutMs = config.timeoutMs ?? 60_000;
+	const pollIntervalMs = config.pollIntervalMs ?? 2_000;
+
+	const client = new Gitlab({
+		host: gitlabHost,
+		token: config.adminToken,
+		camelize: true,
+	});
+
+	log.info("Looking up group {groupName}", { groupName: config.groupName });
+	const groups = await client.Groups.search(config.groupName);
+	const group = groups.find((g) => g.name === config.groupName);
+
+	if (!group) {
+		log.warn("Group {groupName} not found, nothing to teardown", {
+			groupName: config.groupName,
+		});
+		return;
+	}
+
+	// Find all agent users (usernames follow the "agent-*" convention)
+	const allUsers = await client.Users.all({ search: "agent-" });
+	const agentUsers = allUsers.filter((u) => u.username.startsWith("agent-"));
+
+	// Delete agent users and the group in parallel
+	const deletionPromises: Promise<void>[] = [];
+
+	for (const user of agentUsers) {
+		log.info("Scheduling deletion of user {username}", {
+			username: user.username,
+		});
+		deletionPromises.push(
+			client.Users.remove(user.id).then(() =>
+				waitForDeletion(
+					async () => {
+						try {
+							await client.Users.show(user.id);
+							return true;
+						} catch {
+							return false;
+						}
+					},
+					timeoutMs,
+					pollIntervalMs,
+					`User ${user.username}`,
+				),
+			),
+		);
+	}
+
+	// Delete the group (cascades to projects)
+	log.info("Deleting group {groupName}", { groupName: config.groupName });
+	deletionPromises.push(
+		client.Groups.remove(group.id).then(() =>
+			waitForDeletion(
+				async () => {
+					try {
+						await client.Groups.show(group.id);
+						return true;
+					} catch {
+						return false;
+					}
+				},
+				timeoutMs,
+				pollIntervalMs,
+				`Group ${config.groupName}`,
+			),
+		),
+	);
+
+	// Wait for all deletions to complete
+	await Promise.all(deletionPromises);
+
+	log.info("Teardown complete for group {groupName}", {
+		groupName: config.groupName,
+	});
+}
+
 export async function setupGitLabProject(
 	config: SetupConfig,
 ): Promise<SetupResult> {
@@ -459,7 +562,7 @@ export async function setupGitLabProject(
 
 	const group = await findOrCreateGroup(client, config.groupName, force);
 
-	const users = await createUsers(client, agents, config.configDir, force);
+	const users = await createUsers(client, agents, config.configDir);
 
 	const targetProjectName = config.targetRepo.split("/").pop() as string;
 

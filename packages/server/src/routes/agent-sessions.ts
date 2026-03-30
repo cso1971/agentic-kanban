@@ -6,6 +6,8 @@ import {
 	ArtifactContentQuerySchema,
 	ArtifactContentSchema,
 	ArtifactFileSchema,
+	AskSessionBodySchema,
+	AskSessionResponseSchema,
 	TeammateMessageBodySchema,
 	TeammateMessageSchema,
 } from "#schemas/agent-sessions.ts";
@@ -174,8 +176,7 @@ export const getTeammateMessagesRoute = createRoute({
 	path: "/api/agent-sessions/{id}/teammate-messages",
 	tags: ["Agent Sessions"],
 	summary: "Get teammate messages",
-	description:
-		"Returns all teammate messages for a specific agent session",
+	description: "Returns all teammate messages for a specific agent session",
 	request: {
 		params: AgentSessionIdParamSchema,
 	},
@@ -185,6 +186,43 @@ export const getTeammateMessagesRoute = createRoute({
 			content: {
 				"application/json": {
 					schema: z.array(TeammateMessageSchema),
+				},
+			},
+		},
+	},
+});
+
+export const askAgentSessionRoute = createRoute({
+	method: "post",
+	path: "/api/agent-sessions/{id}/ask",
+	tags: ["Agent Sessions"],
+	summary: "Ask a question about an agent session",
+	description:
+		"Asks Claude a question using the session context (messages, metadata) as context",
+	request: {
+		params: AgentSessionIdParamSchema,
+		body: {
+			content: {
+				"application/json": {
+					schema: AskSessionBodySchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Answer from Claude",
+			content: {
+				"application/json": {
+					schema: AskSessionResponseSchema,
+				},
+			},
+		},
+		404: {
+			description: "Agent session not found",
+			content: {
+				"application/json": {
+					schema: ErrorResponseSchema,
 				},
 			},
 		},

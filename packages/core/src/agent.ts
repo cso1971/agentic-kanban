@@ -3,16 +3,12 @@ import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import { logger } from "#logger.ts";
 import { parseError } from "#parse-error.ts";
-import { extractText, parseMessage } from "#parse-message.ts";
 import {
-	type AgentSession,
-	type AgentSessionMessage,
-	appendMessage,
-	completeAgentSession,
-	createAgentSession,
-	getAgentSession,
-	updateAgentSession,
-} from "#store.ts";
+	extractText,
+	type ParsedResult,
+	parseMessage,
+} from "#parse-message.ts";
+import { type AgentSession, type AgentSessionMessage, store } from "#store.ts";
 
 const execFileAsync = promisify(execFile);
 const log = logger.core;
@@ -25,6 +21,8 @@ const APP_ENV_KEYS = [
 	"ANTHROPIC_API_KEY",
 ] as const;
 
+const AGENT_TOKEN_PATTERN = /^AGENT_.+_TOKEN$/;
+
 /** System env vars required for the subprocess to function */
 const SYSTEM_ENV_KEYS = ["PATH", "SHELL"] as const;
 
@@ -33,6 +31,12 @@ function buildAgentEnv(extra?: Record<string, string>): Record<string, string> {
 
 	for (const key of [...SYSTEM_ENV_KEYS, ...APP_ENV_KEYS]) {
 		if (process.env[key]) {
+			env[key] = process.env[key];
+		}
+	}
+
+	for (const key of Object.keys(process.env)) {
+		if (AGENT_TOKEN_PATTERN.test(key) && process.env[key]) {
 			env[key] = process.env[key];
 		}
 	}
@@ -51,6 +55,7 @@ export type ClaudePlugin =
 
 export interface AskQuestionOptions {
 	prompt: string;
+	cwd?: string;
 	model?: Models;
 	systemPrompt?: string;
 	/** Plugins that must be installed before running */
@@ -105,17 +110,23 @@ export async function runAgent(
 	const cwd = options.cwd;
 
 	// Check if we can resume an existing session
-	const existingSession = await getAgentSession(sessionId);
+	const existingSession = await store.get(sessionId);
 	const resumeClaudeSessionId = getResumableClaudeSessionId(existingSession);
 
 	if (resumeClaudeSessionId) {
-		await updateAgentSession(sessionId, {
+		await store.update(sessionId, {
 			status: "running",
 			error: undefined,
 		});
 		log.info`Resuming session ${sessionId} (claude session: ${resumeClaudeSessionId})`;
 	} else {
-		await createAgentSession(sessionId, options.prompt, cwd, options.jobId, options.appendSystemPrompt);
+		await store.create(
+			sessionId,
+			options.prompt,
+			cwd,
+			options.jobId,
+			options.appendSystemPrompt,
+		);
 	}
 
 	const args: string[] = [
@@ -160,6 +171,8 @@ export async function runAgent(
 		});
 
 		let fullOutput = "";
+		let stderrOutput = "";
+		let parsedResult: ParsedResult | undefined;
 
 		child.stdout.on("data", async (chunk: Buffer) => {
 			const raw = chunk.toString();
@@ -171,13 +184,19 @@ export async function runAgent(
 
 				if (text) fullOutput += text;
 
+				if (message?.type === "result") {
+					parsedResult = message;
+				}
+
 				if (message?.type === "init") {
-					updateAgentSession(sessionId, {
-						claudeSessionId: message.sessionId,
-						model: message.model,
-					}).catch((err: unknown) => {
-						log.error`Failed to persist claudeSessionId: ${err}`;
-					});
+					store
+						.update(sessionId, {
+							claudeSessionId: message.sessionId,
+							model: message.model,
+						})
+						.catch((err: unknown) => {
+							log.error`Failed to persist claudeSessionId: ${err}`;
+						});
 				}
 
 				const msg: AgentSessionMessage = {
@@ -187,7 +206,7 @@ export async function runAgent(
 					raw: { stream: "stdout", chunk: json },
 				};
 
-				await appendMessage(sessionId, msg).catch((err) => {
+				await store.appendMessage(sessionId, msg).catch((err) => {
 					log.error`Failed to append stdout message: ${err}`;
 				});
 			}
@@ -195,6 +214,7 @@ export async function runAgent(
 
 		child.stderr.on("data", async (chunk: Buffer) => {
 			const raw = chunk.toString();
+			stderrOutput += raw;
 
 			const lines = raw.split("\n").filter((line) => line.trim());
 			for (const json of lines) {
@@ -207,7 +227,7 @@ export async function runAgent(
 					raw: { stream: "stderr", chunk: json },
 				};
 
-				await appendMessage(sessionId, msg).catch((err) => {
+				await store.appendMessage(sessionId, msg).catch((err) => {
 					log.error`Failed to append stderr message: ${err}`;
 				});
 			}
@@ -215,23 +235,39 @@ export async function runAgent(
 
 		child.on("close", async (code) => {
 			const status = code === 0 ? "completed" : "failed";
+			const detail = stderrOutput.trim() || fullOutput.slice(-2000).trim();
+			const errorMessage =
+				status === "failed"
+					? `claude exited with code ${code}${detail ? `\n${detail}` : ""}`
+					: undefined;
 
-			await completeAgentSession(sessionId, {
+			if (errorMessage) {
+				log.error`${errorMessage}`;
+			}
+
+			await store.complete(sessionId, {
 				status,
 				result: status === "completed" ? fullOutput : undefined,
-				error:
-					status === "failed" ? `claude exited with code ${code}` : undefined,
+				error: errorMessage,
+				durationMs: parsedResult?.durationMs,
+				durationApiMs: parsedResult?.durationApiMs,
+				totalCostUsd: parsedResult?.totalCostUsd,
+				numTurns: parsedResult?.numTurns,
+				inputTokens: parsedResult?.inputTokens,
+				outputTokens: parsedResult?.outputTokens,
+				stopReason: parsedResult?.stopReason,
+				modelUsage: parsedResult?.modelUsage,
 			});
 
 			if (status === "completed") {
 				resolve({ agentSessionId: sessionId, result: fullOutput });
 			} else {
-				reject(new Error(`claude exited with code ${code}`));
+				reject(new Error(errorMessage));
 			}
 		});
 
 		child.on("error", async (err) => {
-			await completeAgentSession(sessionId, {
+			await store.complete(sessionId, {
 				status: "failed",
 				error: err.message,
 			});
@@ -257,7 +293,7 @@ export async function askQuestion(
 		await checkPlugins(options.requiredPlugins);
 	}
 
-	const args: string[] = ["--print", "--max-turns", "1", options.prompt];
+	const args: string[] = ["--print", "--max-turns", "20", options.prompt];
 
 	if (options.model) {
 		args.push("--model", options.model);
@@ -269,21 +305,30 @@ export async function askQuestion(
 
 	return new Promise<string>((resolve, reject) => {
 		const child = spawn("claude", args, {
+			cwd: options.cwd,
 			stdio: ["ignore", "pipe", "pipe"],
 			env: buildAgentEnv(),
 		});
 
 		let output = "";
+		let stderrOutput = "";
 
 		child.stdout.on("data", (chunk: Buffer) => {
 			output += chunk.toString();
+		});
+
+		child.stderr.on("data", (chunk: Buffer) => {
+			stderrOutput += chunk.toString();
 		});
 
 		child.on("close", (code) => {
 			if (code === 0) {
 				resolve(output.trim());
 			} else {
-				reject(new Error(`claude exited with code ${code}`));
+				const detail = stderrOutput.trim() || output.trim();
+				const errorMessage = `claude exited with code ${code}${detail ? `\n${detail}` : ""}`;
+				log.error`${errorMessage}`;
+				reject(new Error(errorMessage));
 			}
 		});
 

@@ -1,5 +1,9 @@
 import { resolve } from "node:path";
-import { createGitLabClient, setupGitLabProject } from "@agentic-kanban/gitlab";
+import {
+	createGitLabClient,
+	setupGitLabProject,
+	teardownGitLabProject,
+} from "@agentic-kanban/gitlab";
 import type { Command } from "commander";
 
 function getGitLabClient() {
@@ -128,6 +132,33 @@ export function registerGitlabCommand(program: Command) {
 				gitlabHost: process.env.GITLAB_HOST,
 				adminToken: token,
 				force: options.force,
+			});
+		});
+
+	gitlab
+		.command("teardown")
+		.description(
+			"Delete a GitLab group and all its projects and agent users",
+		)
+		.requiredOption("-g, --group <name>", "Group name to delete")
+		.option(
+			"--timeout <ms>",
+			"Max time in ms to wait for each deletion",
+			"60000",
+		)
+		.action(async (options) => {
+			const token = process.env.GITLAB_TOKEN;
+
+			if (!token) {
+				console.error("Error: GITLAB_TOKEN environment variable is required");
+				process.exit(1);
+			}
+
+			await teardownGitLabProject({
+				groupName: options.group,
+				gitlabHost: process.env.GITLAB_HOST,
+				adminToken: token,
+				timeoutMs: Number.parseInt(options.timeout, 10),
 			});
 		});
 }

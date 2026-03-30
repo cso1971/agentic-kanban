@@ -27,6 +27,7 @@ async function enqueueAgentJob(
 	workingDir: string,
 	promptPath: string,
 	payload: EnqueuePayload,
+	configDir: string,
 	requiredPlugins?: ClaudePlugin[],
 ): Promise<string> {
 	const promptTemplate = await loadPrompt(promptPath);
@@ -77,6 +78,19 @@ Replace <your-unique-id> with a stable identifier for yourself (e.g. your role s
 		.map(([key, value]) => `#### ${key}\n ${value}`)
 		.join("\n");
 
+	const configDirInstructions = `## Config Directory
+
+Whenever you encounter a file path starting with \`@config\` (e.g. \`@config/agents/foo/agent.md\`), replace \`@config\` with: ${configDir}
+`;
+  
+	const denyWorkarounds = `## Hard Stops
+
+If any of the following happen, STOP IMMEDIATELY and report the failure. Do NOT attempt workarounds, retries, or alternative approaches.
+
+- **Repository clone fails**: If you cannot clone the repository, stop everything. Do not proceed with any other steps.
+- **Agent token authentication fails**: If an agent token (e.g. AGENT_COORDINATOR_TOKEN, AGENT_PRODUCT_ANALYST_TOKEN, etc.) fails to authenticate or lacks permissions for the requested operation, stop everything. Do not fall back to a different token or skip the operation.
+`;
+
 	const appendSystemPrompt = `## Context Variables
 
 You are working with these runtime values:
@@ -85,6 +99,8 @@ Whenever you encounter a {{PLACEHOLDER}} in any file you read during this sessio
 
 ${values}
 
+${configDirInstructions}
+${denyWorkarounds}
 ${teammatesProgressReportingInstructions}`;
 
 	const queue = getAgentQueue();

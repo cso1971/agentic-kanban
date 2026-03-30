@@ -221,8 +221,13 @@ describe("parseMessage", () => {
 			result: "Task completed successfully.",
 			error: undefined,
 			durationMs: 45000,
+			durationApiMs: 30000,
 			totalCostUsd: 0.12,
 			numTurns: 8,
+			inputTokens: 5000,
+			outputTokens: 2000,
+			stopReason: "end_turn",
+			modelUsage: {},
 		});
 	});
 
@@ -250,8 +255,13 @@ describe("parseMessage", () => {
 			result: undefined,
 			error: "error_max_turns",
 			durationMs: 60000,
+			durationApiMs: 40000,
 			totalCostUsd: 0.5,
 			numTurns: 20,
+			inputTokens: 10000,
+			outputTokens: 5000,
+			stopReason: null,
+			modelUsage: {},
 		});
 	});
 

@@ -8,9 +8,13 @@ export {
 	type SetupConfig,
 	type SetupResult,
 	setupGitLabProject,
+	type TeardownConfig,
+	teardownGitLabProject,
 } from "#config.ts";
 export {
 	type GetRootTokenOptions,
 	type GetRootTokenResult,
 	getRootAccessToken,
+	registerRunner,
+	type RegisterRunnerOptions,
 } from "#local.ts";

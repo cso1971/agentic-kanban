@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { type TreeNode, extractFolderEntries } from "./shared.ts";
+import { extractFolderEntries, type TreeNode } from "./shared.ts";
 
 interface CoordinatorTabProps {
 	tree: TreeNode[] | undefined;
@@ -54,9 +54,7 @@ export function CoordinatorTab({
 	return (
 		<>
 			<section className="rounded-lg border border-gray-200 bg-white p-6">
-				<h2 className="mb-3 font-medium text-gray-900 text-lg">
-					Coordinator
-				</h2>
+				<h2 className="mb-3 font-medium text-gray-900 text-lg">Coordinator</h2>
 				<p className="mb-3 text-gray-500 text-sm">
 					Select a coordinator to moderate the discussion.
 				</p>
@@ -95,9 +93,7 @@ export function CoordinatorTab({
 			</section>
 
 			<section className="rounded-lg border border-gray-200 bg-white p-6">
-				<h2 className="mb-3 font-medium text-gray-900 text-lg">
-					Teammates
-				</h2>
+				<h2 className="mb-3 font-medium text-gray-900 text-lg">Teammates</h2>
 				<p className="mb-3 text-gray-500 text-sm">
 					Select agents to participate in the discussion.
 				</p>

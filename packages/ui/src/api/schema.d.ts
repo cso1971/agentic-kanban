@@ -767,8 +767,19 @@ export interface components {
 			result?: string;
 			error?: string;
 			durationMs?: number;
+			durationApiMs?: number;
 			totalCostUsd?: number;
 			numTurns?: number;
+			inputTokens?: number;
+			outputTokens?: number;
+			stopReason?: string | null;
+			modelUsage?: Record<string, {
+				inputTokens: number;
+				outputTokens: number;
+				cacheReadInputTokens: number;
+				cacheCreationInputTokens: number;
+				costUsd: number;
+			}>;
 			model?: string;
 			jobId?: string;
 			appendSystemPrompt?: string;
@@ -832,8 +843,19 @@ export interface components {
 					result?: string;
 					error?: string;
 					durationMs: number;
+					durationApiMs: number;
 					totalCostUsd: number;
 					numTurns: number;
+					inputTokens: number;
+					outputTokens: number;
+					stopReason: string | null;
+					modelUsage: Record<string, {
+						inputTokens: number;
+						outputTokens: number;
+						cacheReadInputTokens: number;
+						cacheCreationInputTokens: number;
+						costUsd: number;
+					}>;
 			  }
 			| {
 					/** @enum {string} */

@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import type { ParsedMessage } from "#parse-message.ts";
+import type { ModelUsageInfo, ParsedMessage } from "#parse-message.ts";
 
 export interface AgentSession {
 	id: string;
@@ -12,8 +12,13 @@ export interface AgentSession {
 	result?: string;
 	error?: string;
 	durationMs?: number;
+	durationApiMs?: number;
 	totalCostUsd?: number;
 	numTurns?: number;
+	inputTokens?: number;
+	outputTokens?: number;
+	stopReason?: string | null;
+	modelUsage?: Record<string, ModelUsageInfo>;
 	model?: string;
 	/** Claude CLI session ID for resume support */
 	claudeSessionId?: string;
@@ -47,7 +52,19 @@ function agentSessionDir(id: string): string {
 	return join(getStoreDir(), id);
 }
 
-export async function createAgentSession(
+function agentSessionMessagesPath(id: string): string {
+	return join(agentSessionDir(id), "messages.jsonl");
+}
+
+function agentSessionWorkingDirectoryDir(id: string): string {
+	return join(agentSessionDir(id), "working-directory");
+}
+
+function agentSessionArtifactsDir(id: string): string {
+	return join(agentSessionDir(id), "artifacts");
+}
+
+async function createAgentSession(
 	id: string,
 	prompt: string,
 	cwd: string,
@@ -67,22 +84,24 @@ export async function createAgentSession(
 	const dir = agentSessionDir(id);
 	await mkdir(dir, { recursive: true });
 	await writeFile(join(dir, "session.json"), JSON.stringify(session, null, 2));
-	await writeFile(join(dir, "messages.jsonl"), "");
+	await writeFile(agentSessionMessagesPath(id), "");
 
 	return session;
 }
 
-export async function appendMessage(
+async function appendMessage(
 	id: string,
 	message: AgentSessionMessage,
 ): Promise<void> {
-	const filePath = join(agentSessionDir(id), "messages.jsonl");
-
-	await writeFile(filePath, `${JSON.stringify(message)}\n`, { flag: "a" });
+	await writeFile(
+		agentSessionMessagesPath(id),
+		`${JSON.stringify(message)}\n`,
+		{ flag: "a" },
+	);
 }
 
 async function getAgentSessionWorkingDirectory(id: string): Promise<string> {
-	const dir = join(agentSessionDir(id), "working-directory");
+	const dir = agentSessionWorkingDirectoryDir(id);
 
 	await mkdir(dir, { recursive: true });
 
@@ -90,7 +109,7 @@ async function getAgentSessionWorkingDirectory(id: string): Promise<string> {
 }
 
 async function getAgentSessionArtifacts(id: string): Promise<string> {
-	const dir = join(agentSessionDir(id), "artifacts");
+	const dir = agentSessionArtifactsDir(id);
 
 	await mkdir(dir, { recursive: true });
 
@@ -149,7 +168,7 @@ async function getAgentSessionArtifactContent(
 	if (filePath.includes("\\") || filePath.includes("..")) {
 		return null;
 	}
-	const baseDir = join(agentSessionDir(id), "artifacts");
+	const baseDir = agentSessionArtifactsDir(id);
 	const resolved = resolve(baseDir, filePath);
 	if (!resolved.startsWith(baseDir)) {
 		return null;
@@ -161,7 +180,7 @@ async function getAgentSessionArtifactContent(
 	}
 }
 
-export async function updateAgentSession(
+async function updateAgentSession(
 	id: string,
 	update: Partial<AgentSession>,
 ): Promise<void> {
@@ -171,7 +190,7 @@ export async function updateAgentSession(
 	await writeFile(filePath, JSON.stringify(updated, null, 2));
 }
 
-export async function completeAgentSession(
+async function completeAgentSession(
 	id: string,
 	update: Partial<AgentSession>,
 ): Promise<void> {
@@ -185,7 +204,7 @@ export async function completeAgentSession(
 	await writeFile(filePath, JSON.stringify(updated, null, 2));
 }
 
-export async function listAgentSessions(): Promise<AgentSession[]> {
+async function listAgentSessions(): Promise<AgentSession[]> {
 	const storeDir = getStoreDir();
 	let entries: string[];
 	try {
@@ -212,9 +231,7 @@ export async function listAgentSessions(): Promise<AgentSession[]> {
 	);
 }
 
-export async function getAgentSession(
-	id: string,
-): Promise<AgentSession | null> {
+async function getAgentSession(id: string): Promise<AgentSession | null> {
 	try {
 		const data = await readFile(
 			join(agentSessionDir(id), "session.json"),
@@ -226,14 +243,11 @@ export async function getAgentSession(
 	}
 }
 
-export async function getAgentSessionMessages(
+async function getAgentSessionMessages(
 	id: string,
 ): Promise<AgentSessionMessage[]> {
 	try {
-		const data = await readFile(
-			join(agentSessionDir(id), "messages.jsonl"),
-			"utf-8",
-		);
+		const data = await readFile(agentSessionMessagesPath(id), "utf-8");
 		return data
 			.split("\n")
 			.filter(Boolean)
@@ -243,7 +257,7 @@ export async function getAgentSessionMessages(
 	}
 }
 
-export async function appendTeammateMessage(
+async function appendTeammateMessage(
 	id: string,
 	message: TeammateMessage,
 ): Promise<void> {
@@ -251,9 +265,7 @@ export async function appendTeammateMessage(
 	await writeFile(filePath, `${JSON.stringify(message)}\n`, { flag: "a" });
 }
 
-export async function getTeammateMessages(
-	id: string,
-): Promise<TeammateMessage[]> {
+async function getTeammateMessages(id: string): Promise<TeammateMessage[]> {
 	try {
 		const data = await readFile(
 			join(agentSessionDir(id), "teammate-messages.jsonl"),
@@ -269,8 +281,14 @@ export async function getTeammateMessages(
 }
 
 export const store = {
-	get: getAgentSession,
+	create: createAgentSession,
 	update: updateAgentSession,
+	appendMessage: appendMessage,
+	complete: completeAgentSession,
+	get: getAgentSession,
+	dir: agentSessionDir,
+	getMessagesPath: agentSessionMessagesPath,
+	getArtifactsDir: agentSessionArtifactsDir,
 	getMessages: getAgentSessionMessages,
 	list: listAgentSessions,
 	workingDirectory: getAgentSessionWorkingDirectory,

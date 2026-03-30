@@ -11,8 +11,24 @@ export const AgentSessionSchema = z
 		result: z.string().optional(),
 		error: z.string().optional(),
 		durationMs: z.number().optional(),
+		durationApiMs: z.number().optional(),
 		totalCostUsd: z.number().optional(),
 		numTurns: z.number().optional(),
+		inputTokens: z.number().optional(),
+		outputTokens: z.number().optional(),
+		stopReason: z.string().nullable().optional(),
+		modelUsage: z
+			.record(
+				z.string(),
+				z.object({
+					inputTokens: z.number(),
+					outputTokens: z.number(),
+					cacheReadInputTokens: z.number(),
+					cacheCreationInputTokens: z.number(),
+					costUsd: z.number(),
+				}),
+			)
+			.optional(),
 		model: z.string().optional(),
 		jobId: z.string().optional(),
 		appendSystemPrompt: z.string().optional(),
@@ -64,8 +80,22 @@ const ParsedResultSchema = z.object({
 	result: z.string().optional(),
 	error: z.string().optional(),
 	durationMs: z.number(),
+	durationApiMs: z.number(),
 	totalCostUsd: z.number(),
 	numTurns: z.number(),
+	inputTokens: z.number(),
+	outputTokens: z.number(),
+	stopReason: z.string().nullable(),
+	modelUsage: z.record(
+		z.string(),
+		z.object({
+			inputTokens: z.number(),
+			outputTokens: z.number(),
+			cacheReadInputTokens: z.number(),
+			cacheCreationInputTokens: z.number(),
+			costUsd: z.number(),
+		}),
+	),
 });
 
 const ParsedInitSchema = z.object({
@@ -142,8 +172,39 @@ export const TeammateMessageSchema = z
 
 export const TeammateMessageBodySchema = z
 	.object({
-		agentId: z.string().openapi({ description: "Unique identifier for the teammate agent" }),
-		agentName: z.string().openapi({ description: "Display name / role of the teammate agent" }),
-		content: z.string().openapi({ description: "Message content describing what the agent is doing" }),
+		agentId: z
+			.string()
+			.openapi({ description: "Unique identifier for the teammate agent" }),
+		agentName: z
+			.string()
+			.openapi({ description: "Display name / role of the teammate agent" }),
+		content: z.string().openapi({
+			description: "Message content describing what the agent is doing",
+		}),
 	})
 	.openapi("TeammateMessageBody");
+
+const ChatMessageSchema = z.object({
+	role: z.enum(["user", "assistant"]),
+	content: z.string(),
+});
+
+export const AskSessionBodySchema = z
+	.object({
+		prompt: z
+			.string()
+			.openapi({ description: "Question to ask about this agent session" }),
+		history: z
+			.array(ChatMessageSchema)
+			.optional()
+			.openapi({
+				description: "Previous chat messages for conversational context",
+			}),
+	})
+	.openapi("AskSessionBody");
+
+export const AskSessionResponseSchema = z
+	.object({
+		answer: z.string(),
+	})
+	.openapi("AskSessionResponse");

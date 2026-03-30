@@ -20,7 +20,10 @@ const server = Bun.serve({
 		const cors = { "Access-Control-Allow-Origin": "*" };
 
 		if (req.method !== "POST") {
-			return Response.json({ error: "Method not allowed" }, { status: 405, headers: cors });
+			return Response.json(
+				{ error: "Method not allowed" },
+				{ status: 405, headers: cors },
+			);
 		}
 
 		const operation = url.pathname.slice(1) as keyof typeof operations;

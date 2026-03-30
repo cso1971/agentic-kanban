@@ -39,7 +39,13 @@ Authenticate with the coordinator token by default. When a specific teammate nee
 
 1. Synthesize the council's output into a coherent set of user stories.
 
-1. Create the user stories as new issues in the project using glab. Label each story with `story` and `Refinement` and link it to the epic issue #{{ISSUE_IID}} using `glab issue note {{ISSUE_IID}} --message "Related: #<new_issue_iid>"` or the appropriate glab linking mechanism.
+1. Create the user stories as new issues in the project using glab. Label each story with `story` and `Refinement`. After creating each story, extract its IID from the `glab issue create` output, then link it to the epic issue #{{ISSUE_IID}} by running:
+
+   ```bash
+   glab api --method POST "/projects/{{PROJECT_ID}}/issues/{{ISSUE_IID}}/links" -f target_project_id={{PROJECT_ID}} -f "target_issue_iid=<NEW_STORY_IID>" -f link_type=relates_to
+   ```
+
+   Verify each link was created successfully (the response should include both issue IIDs). If linking fails, retry with the numeric project ID.
 
 1. For each council agent (Product Analyst, IT Architect, QA Strategist), add a comment on the epic issue {{ISSUE_IID}} summarizing that agent's perspective and recommendations. Use each agent's own token (`AGENT_PRODUCT_ANALYST_TOKEN`, `AGENT_IT_ARCHITECT_TOKEN`, `AGENT_QA_STRATEGIST_TOKEN`) so the comment is attributed to the correct GitLab user.
 

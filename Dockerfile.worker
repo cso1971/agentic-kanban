@@ -1,0 +1,29 @@
+FROM oven/bun:1-debian
+
+WORKDIR /app
+
+# Install Node.js (needed for Claude Code CLI), curl, and glab (GitLab CLI)
+RUN apt-get update && apt-get install -y curl nodejs npm && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://gitlab.com/gitlab-org/cli/-/releases/permalink/latest/downloads/glab_linux_amd64.deb -o /tmp/glab.deb \
+    && dpkg -i /tmp/glab.deb \
+    && rm /tmp/glab.deb
+
+# Install Claude Code CLI globally
+RUN npm install -g @anthropic-ai/claude-code
+
+# Copy workspace config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/core/package.json packages/core/
+COPY packages/queue/package.json packages/queue/
+COPY packages/worker/package.json packages/worker/
+
+# Install pnpm and dependencies
+RUN bun install -g pnpm@10.32.1 && pnpm install --frozen-lockfile
+
+# Copy source
+COPY tsconfig.base.json ./
+COPY packages/core/ packages/core/
+COPY packages/queue/ packages/queue/
+COPY packages/worker/ packages/worker/
+
+CMD ["bun", "run", "packages/worker/src/worker.ts"]

@@ -11,7 +11,11 @@ const operatorToEndpoint: Record<Operator, string> = {
 
 const API_URL = "http://localhost:3001";
 
-async function callBackend(op: Operator, a: number, b: number): Promise<number> {
+async function callBackend(
+	op: Operator,
+	a: number,
+	b: number,
+): Promise<number> {
 	const res = await fetch(`${API_URL}/${operatorToEndpoint[op]}`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -113,112 +117,112 @@ export function App() {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-black">
 			<div className="w-80">
-				<div className="mb-2 px-4 text-right text-5xl font-light text-white truncate">
+				<div className="mb-2 truncate px-4 text-right font-light text-5xl text-white">
 					{display}
 				</div>
 
 				<div className="grid grid-cols-4 gap-3">
 					<button
-						type="button"
-						onClick={clear}
 						className={`${btn} bg-neutral-400 text-black`}
+						onClick={clear}
+						type="button"
 					>
 						{firstOperand !== null || operator !== null ? "C" : "AC"}
 					</button>
 					<button
-						type="button"
-						onClick={toggleSign}
 						className={`${btn} bg-neutral-400 text-black`}
+						onClick={toggleSign}
+						type="button"
 					>
 						±
 					</button>
 					<button
-						type="button"
-						onClick={percent}
 						className={`${btn} bg-neutral-400 text-black`}
+						onClick={percent}
+						type="button"
 					>
 						%
 					</button>
 					<button
-						type="button"
-						onClick={() => handleOperator("÷")}
 						className={`${btn} ${operator === "÷" && waitingForSecond ? "bg-white text-orange-500" : "bg-orange-500 text-white"}`}
+						onClick={() => handleOperator("÷")}
+						type="button"
 					>
 						÷
 					</button>
 
 					{["7", "8", "9"].map((d) => (
 						<button
-							key={d}
-							type="button"
-							onClick={() => inputDigit(d)}
 							className={`${btn} bg-neutral-700 text-white`}
+							key={d}
+							onClick={() => inputDigit(d)}
+							type="button"
 						>
 							{d}
 						</button>
 					))}
 					<button
-						type="button"
-						onClick={() => handleOperator("×")}
 						className={`${btn} ${operator === "×" && waitingForSecond ? "bg-white text-orange-500" : "bg-orange-500 text-white"}`}
+						onClick={() => handleOperator("×")}
+						type="button"
 					>
 						×
 					</button>
 
 					{["4", "5", "6"].map((d) => (
 						<button
-							key={d}
-							type="button"
-							onClick={() => inputDigit(d)}
 							className={`${btn} bg-neutral-700 text-white`}
+							key={d}
+							onClick={() => inputDigit(d)}
+							type="button"
 						>
 							{d}
 						</button>
 					))}
 					<button
-						type="button"
-						onClick={() => handleOperator("-")}
 						className={`${btn} ${operator === "-" && waitingForSecond ? "bg-white text-orange-500" : "bg-orange-500 text-white"}`}
+						onClick={() => handleOperator("-")}
+						type="button"
 					>
 						−
 					</button>
 
 					{["1", "2", "3"].map((d) => (
 						<button
-							key={d}
-							type="button"
-							onClick={() => inputDigit(d)}
 							className={`${btn} bg-neutral-700 text-white`}
+							key={d}
+							onClick={() => inputDigit(d)}
+							type="button"
 						>
 							{d}
 						</button>
 					))}
 					<button
-						type="button"
-						onClick={() => handleOperator("+")}
 						className={`${btn} ${operator === "+" && waitingForSecond ? "bg-white text-orange-500" : "bg-orange-500 text-white"}`}
+						onClick={() => handleOperator("+")}
+						type="button"
 					>
 						+
 					</button>
 
 					<button
-						type="button"
+						className={`${btn} col-span-2 justify-start bg-neutral-700 pl-7 text-white`}
 						onClick={() => inputDigit("0")}
-						className={`${btn} col-span-2 justify-start pl-7 bg-neutral-700 text-white`}
+						type="button"
 					>
 						0
 					</button>
 					<button
-						type="button"
-						onClick={inputDecimal}
 						className={`${btn} bg-neutral-700 text-white`}
+						onClick={inputDecimal}
+						type="button"
 					>
 						.
 					</button>
 					<button
-						type="button"
-						onClick={handleEquals}
 						className={`${btn} bg-orange-500 text-white`}
+						onClick={handleEquals}
+						type="button"
 					>
 						=
 					</button>

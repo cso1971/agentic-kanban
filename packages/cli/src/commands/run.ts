@@ -10,6 +10,7 @@ export function registerRunCommand(program: Command) {
 		.command("run")
 		.description("Run an agent with a prompt file")
 		.requiredOption("-p, --prompt <path>", "Path to prompt file (.md)")
+		.requiredOption("-c, --config-dir <path>", "Path to config directory")
 		.option("-w, --working-directory <path>", "Working directory", ".")
 		.option(
 			"-m, --permission-mode <mode>",
@@ -22,6 +23,7 @@ export function registerRunCommand(program: Command) {
 			const log = logger.cli;
 
 			const promptPath = resolve(options.prompt);
+			const configDir = resolve(options.configDir);
 
 			if (!existsSync(promptPath)) {
 				throw new Error(`Prompt file not found: ${promptPath}`);
@@ -44,6 +46,7 @@ export function registerRunCommand(program: Command) {
 					issueTitle: "some-issue-title",
 					issueDescription: "some-issue-description",
 				},
+				configDir,
 			);
 
 			log.info`---`;

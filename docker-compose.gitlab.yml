@@ -41,7 +41,8 @@ services:
     container_name: gitlab-runner
     restart: unless-stopped
     depends_on:
-      - gitlab
+      gitlab:
+        condition: service_healthy
     volumes:
       - gitlab_runner_config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock

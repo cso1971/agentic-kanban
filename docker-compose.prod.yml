@@ -1,0 +1,44 @@
+services:
+  server:
+    image: agentic-kanban-server:latest
+    container_name: agentic-kanban-server
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-4300}:${SERVER_PORT:-4300}"
+    env_file: .env
+    environment:
+      - SERVER_AGENT_CONFIG=/app/config/config.json
+    volumes:
+      - ./config:/app/config:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: agentic-kanban-worker:latest
+    container_name: agentic-kanban-worker
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - agent-sessions:/app/.agent-sessions
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+  agent-sessions:

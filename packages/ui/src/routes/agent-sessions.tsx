@@ -1,5 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { $api, type AgentSession } from "#api/client.ts";
@@ -159,6 +160,33 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 					</>
 				)}
 
+				{session.inputTokens != null && (
+					<>
+						<span className="text-gray-500">Tokens</span>
+						<span>
+							{session.inputTokens.toLocaleString()} in /{" "}
+							{session.outputTokens?.toLocaleString() ?? 0} out
+						</span>
+					</>
+				)}
+
+				{session.durationApiMs != null && session.durationMs != null && (
+					<>
+						<span className="text-gray-500">API Time</span>
+						<span>
+							{(session.durationApiMs / 1000).toFixed(1)}s of{" "}
+							{(session.durationMs / 1000).toFixed(1)}s total
+						</span>
+					</>
+				)}
+
+				{session.stopReason && (
+					<>
+						<span className="text-gray-500">Stop Reason</span>
+						<span>{session.stopReason}</span>
+					</>
+				)}
+
 				<span className="text-gray-500">CWD</span>
 				<span className="font-mono text-xs">{session.cwd}</span>
 			</div>
@@ -201,9 +229,11 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 						</span>
 						Result
 					</summary>
-					<pre className="whitespace-pre-wrap rounded-lg bg-green-50 p-3 text-sm">
-						{session.result}
-					</pre>
+					<div className="prose prose-sm max-w-none rounded-lg bg-green-50 p-3">
+						<ReactMarkdown remarkPlugins={[remarkGfm]}>
+							{session.result}
+						</ReactMarkdown>
+					</div>
 				</details>
 			)}
 
@@ -229,7 +259,133 @@ function AgentSessionDetail({ session }: { session: AgentSession }) {
 			/>
 
 			<MessagesSection messages={messages} />
+
+			<AskSessionSection sessionId={session.id} />
 		</div>
+	);
+}
+
+interface ChatMessage {
+	id: string;
+	role: "user" | "assistant";
+	content: string;
+}
+
+function AskSessionSection({ sessionId }: { sessionId: string }) {
+	const [input, setInput] = useState("");
+	const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+	const scrollRef = useRef<HTMLDivElement>(null);
+
+	const askMutation = useMutation({
+		mutationFn: async ({
+			prompt,
+			history,
+		}: {
+			prompt: string;
+			history: { role: "user" | "assistant"; content: string }[];
+		}) => {
+			const res = await fetch(`/api/agent-sessions/${sessionId}/ask`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ prompt, history }),
+			});
+			if (!res.ok) throw new Error("Failed to ask question");
+			const data = (await res.json()) as { answer: string };
+			return data.answer;
+		},
+		onSuccess: (answer) => {
+			setChatHistory((prev) => [
+				...prev,
+				{ id: `a-${Date.now()}`, role: "assistant", content: answer },
+			]);
+			setTimeout(
+				() =>
+					scrollRef.current?.scrollTo({
+						top: scrollRef.current.scrollHeight,
+						behavior: "smooth",
+					}),
+				50,
+			);
+		},
+	});
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		const prompt = input.trim();
+		if (!prompt || askMutation.isPending) return;
+		const history = chatHistory.map(({ role, content }) => ({ role, content }));
+		setChatHistory((prev) => [
+			...prev,
+			{ id: `u-${Date.now()}`, role: "user", content: prompt },
+		]);
+		setInput("");
+		askMutation.mutate({ prompt, history });
+	};
+
+	return (
+		<details className="group mb-4" open>
+			<summary className="mb-2 flex cursor-pointer list-none items-center gap-1 font-medium text-gray-900">
+				<span className="text-gray-400 text-xs transition-transform group-open:rotate-90">
+					&#9654;
+				</span>
+				Ask about this session
+			</summary>
+
+			<div className="rounded-lg border border-gray-200 bg-gray-50">
+				{chatHistory.length > 0 && (
+					<div className="max-h-96 space-y-3 overflow-auto p-4" ref={scrollRef}>
+						{chatHistory.map((msg) => (
+							<div
+								className={`rounded-lg p-3 text-sm ${
+									msg.role === "user"
+										? "ml-8 bg-blue-100 text-blue-900"
+										: "mr-8 bg-white text-gray-800 shadow-sm"
+								}`}
+								key={msg.id}
+							>
+								<div className="mb-1 font-medium text-xs opacity-60">
+									{msg.role === "user" ? "You" : "Claude"}
+								</div>
+								<div className="prose prose-sm max-w-none">
+									<ReactMarkdown remarkPlugins={[remarkGfm]}>
+										{msg.content}
+									</ReactMarkdown>
+								</div>
+							</div>
+						))}
+						{askMutation.isPending && (
+							<div className="mr-8 rounded-lg bg-white p-3 text-gray-400 text-sm shadow-sm">
+								Thinking...
+							</div>
+						)}
+					</div>
+				)}
+
+				<form className="flex gap-2 p-3" onSubmit={handleSubmit}>
+					<input
+						className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
+						disabled={askMutation.isPending}
+						onChange={(e) => setInput(e.target.value)}
+						placeholder="Ask a question about this session..."
+						type="text"
+						value={input}
+					/>
+					<button
+						className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+						disabled={askMutation.isPending || !input.trim()}
+						type="submit"
+					>
+						{askMutation.isPending ? "..." : "Ask"}
+					</button>
+				</form>
+
+				{askMutation.isError && (
+					<p className="px-3 pb-3 text-red-600 text-sm">
+						Failed to get answer. Please try again.
+					</p>
+				)}
+			</div>
+		</details>
 	);
 }
 
@@ -348,9 +504,11 @@ function TeammateMessagesSection({
 						<div className="divide-y divide-gray-50 px-4">
 							{messages.map((msg, i) => (
 								<div className="py-2" key={i}>
-									<ReactMarkdown remarkPlugins={[remarkGfm]}>
-										{msg.content}
-									</ReactMarkdown>
+									<div className="prose prose-sm max-w-none">
+										<ReactMarkdown remarkPlugins={[remarkGfm]}>
+											{msg.content}
+										</ReactMarkdown>
+									</div>
 									<span className="text-gray-400 text-xs">
 										{new Date(msg.timestamp).toLocaleTimeString()}
 									</span>
@@ -664,6 +822,14 @@ function SmartMessages({ turns }: { turns: Turn[] }) {
 											>
 												{toolMsg.toolName}
 											</span>
+											{typeof toolMsg.input === "object" &&
+												toolMsg.input !== null &&
+												"description" in toolMsg.input &&
+												typeof (toolMsg.input as Record<string, unknown>).description === "string" && (
+													<span className="max-w-[300px] truncate text-gray-400 text-xs">
+														{(toolMsg.input as Record<string, unknown>).description as string}
+													</span>
+												)}
 											{resultMsg?.isError && (
 												<span className="rounded bg-red-100 px-1.5 py-0.5 text-red-600 text-xs">
 													error
@@ -923,9 +1089,11 @@ function MessageContent({ message }: { message: ParsedMessage }) {
 			return (
 				<div className="mb-2 text-sm">
 					{message.result && (
-						<pre className="whitespace-pre-wrap text-gray-700">
-							{message.result}
-						</pre>
+						<div className="prose prose-sm max-w-none text-gray-700">
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>
+								{message.result}
+							</ReactMarkdown>
+						</div>
 					)}
 					{message.error && (
 						<pre className="whitespace-pre-wrap text-red-600">

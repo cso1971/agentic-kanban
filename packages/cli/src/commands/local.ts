@@ -1,7 +1,7 @@
 import path from "node:path";
 import * as readline from "node:readline";
 import { env, logger } from "@agentic-kanban/core";
-import { getRootAccessToken } from "@agentic-kanban/gitlab";
+import { getRootAccessToken, registerRunner } from "@agentic-kanban/gitlab";
 import type { Command } from "commander";
 
 const log = logger.cli;
@@ -65,6 +65,20 @@ export function registerLocalCommand(program: Command) {
 					log.info`Skipped writing to .env file.`;
 					log.info`To use manually, set: GITLAB_TOKEN=${result.token}`;
 				}
+			} catch (error) {
+				log.error`Error: ${error instanceof Error ? error.message : String(error)}`;
+				process.exit(1);
+			}
+		});
+
+	local
+		.command("register-runner")
+		.description(
+			"Register the GitLab Runner container with the local GitLab instance",
+		)
+		.action(async () => {
+			try {
+				await registerRunner();
 			} catch (error) {
 				log.error`Error: ${error instanceof Error ? error.message : String(error)}`;
 				process.exit(1);

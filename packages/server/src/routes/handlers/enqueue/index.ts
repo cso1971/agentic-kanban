@@ -72,6 +72,7 @@ export function createEnqueueHandler(
 					reviewComment: body.reviewComment,
 					teammates: body.teammates,
 				},
+				configDir,
 				requiredPlugins,
 			);
 		}

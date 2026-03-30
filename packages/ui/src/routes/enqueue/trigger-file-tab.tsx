@@ -1,10 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { $api } from "#api/client.ts";
-import {
-	type TreeNode,
-	detectUsedVars,
-	filterTriggerFiles,
-} from "./shared.ts";
+import { detectUsedVars, filterTriggerFiles, type TreeNode } from "./shared.ts";
 
 interface TriggerFileTabProps {
 	tree: TreeNode[] | undefined;
@@ -65,9 +61,7 @@ export function TriggerFileTab({
 	return (
 		<>
 			<section className="rounded-lg border border-gray-200 bg-white p-6">
-				<h2 className="mb-3 font-medium text-gray-900 text-lg">
-					Prompt File
-				</h2>
+				<h2 className="mb-3 font-medium text-gray-900 text-lg">Prompt File</h2>
 				<p className="mb-3 text-gray-500 text-sm">
 					Select a trigger prompt (.md) from the config directory.
 				</p>

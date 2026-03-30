@@ -46,14 +46,27 @@ export interface ParsedTaskNotification {
 	summary: string;
 }
 
+export interface ModelUsageInfo {
+	inputTokens: number;
+	outputTokens: number;
+	cacheReadInputTokens: number;
+	cacheCreationInputTokens: number;
+	costUsd: number;
+}
+
 export interface ParsedResult {
 	type: "result";
 	subtype: "success" | string;
 	result?: string;
 	error?: string;
 	durationMs: number;
+	durationApiMs: number;
 	totalCostUsd: number;
 	numTurns: number;
+	inputTokens: number;
+	outputTokens: number;
+	stopReason: string | null;
+	modelUsage: Record<string, ModelUsageInfo>;
 }
 
 export interface ParsedInit {
@@ -193,14 +206,32 @@ export function parseSDKMessage(msg: SDKMessage): ParsedMessage {
 		}
 
 		case "result": {
+			const modelUsage: Record<string, ModelUsageInfo> = {};
+			if (msg.modelUsage) {
+				for (const [model, usage] of Object.entries(msg.modelUsage)) {
+					modelUsage[model] = {
+						inputTokens: usage.inputTokens,
+						outputTokens: usage.outputTokens,
+						cacheReadInputTokens: usage.cacheReadInputTokens,
+						cacheCreationInputTokens: usage.cacheCreationInputTokens,
+						costUsd: usage.costUSD,
+					};
+				}
+			}
+
 			return {
 				type: "result",
 				subtype: msg.subtype,
 				result: msg.subtype === "success" ? msg.result : undefined,
 				error: msg.subtype !== "success" ? msg.subtype : undefined,
 				durationMs: msg.duration_ms,
+				durationApiMs: msg.duration_api_ms,
 				totalCostUsd: msg.total_cost_usd,
 				numTurns: msg.num_turns,
+				inputTokens: msg.usage.input_tokens,
+				outputTokens: msg.usage.output_tokens,
+				stopReason: msg.stop_reason,
+				modelUsage,
 			};
 		}
 

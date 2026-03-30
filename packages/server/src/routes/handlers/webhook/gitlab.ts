@@ -8,7 +8,11 @@ import {
 } from "@agentic-kanban/core";
 import { type EnqueuePayload, enqueuer } from "@agentic-kanban/queue";
 import type { RouteHandler } from "@hono/zod-openapi";
-import type { CommentEvent, IssueEvent } from "gitlab-event-types";
+import type {
+	CommentEvent,
+	IssueEvent,
+	MergeRequestEvent,
+} from "gitlab-event-types";
 import type { RouteContext } from "#routes/index.ts";
 import type { gitlabWebhookRoute } from "#routes/webhook.ts";
 
@@ -25,12 +29,19 @@ export function createGitlabWebhookHandler(
 			}
 		}
 
-		const payload = c.req.valid("json") as unknown as IssueEvent | CommentEvent;
+		const payload = c.req.valid("json") as unknown as
+			| IssueEvent
+			| CommentEvent
+			| MergeRequestEvent;
 
 		const eventType = payload.object_kind;
 
 		if (eventType === "note") {
 			return handleNoteEvent(c, payload as CommentEvent, ctx);
+		}
+
+		if (eventType === "merge_request") {
+			return handleMergeRequestEvent(c, payload as MergeRequestEvent, ctx);
 		}
 
 		return handleIssueEvent(c, payload as IssueEvent, ctx);
@@ -70,6 +81,7 @@ async function handleIssueEvent(
 			issueTitle: payload.object_attributes?.title ?? "",
 			issueDescription: payload.object_attributes?.description ?? "",
 		},
+		configDir,
 		rule.plugins,
 	);
 
@@ -135,10 +147,63 @@ async function handleNoteEvent(
 		workingDir,
 		promptPath,
 		enqueuePayload,
+		configDir,
 		rule.plugins,
 	);
 
 	log.info`Queued job ${jobId} for note on MR !${enqueuePayload.mrIid}`;
+
+	return c.json(
+		{
+			status: "accepted" as const,
+			matched_rule: { prompt: rule.prompt },
+			jobId,
+			agentSessionId,
+		},
+		200,
+	);
+}
+
+async function handleMergeRequestEvent(
+	c: Parameters<RouteHandler<typeof gitlabWebhookRoute>>[0],
+	payload: MergeRequestEvent,
+	ctx: RouteContext,
+) {
+	const mrAttrs = payload.object_attributes;
+	const rule = matchMergeRequestRule(payload, ctx.config);
+
+	if (!rule) {
+		log.info`No matching merge_request rule for action="${mrAttrs.action}"`;
+		return c.json(
+			{ status: "ignored" as const, reason: "no matching rule" },
+			200,
+		);
+	}
+
+	const agentSessionId = randomUUID();
+	const workingDir = await store.workingDirectory(agentSessionId);
+	const configDir = dirname(resolve(ctx.configPath));
+	const promptPath = resolve(configDir, rule.prompt);
+
+	const enqueuePayload: EnqueuePayload = {
+		projectId: String(payload.project?.id ?? ""),
+		mrIid: String(mrAttrs.iid ?? ""),
+		mrTitle: mrAttrs.title ?? "",
+		sourceBranch: mrAttrs.source_branch ?? "",
+	};
+
+	log.info`Matched merge_request rule -> prompt="${rule.prompt}" on MR !${enqueuePayload.mrIid}`;
+
+	const jobId = await enqueuer.enqueueAgentJob(
+		agentSessionId,
+		workingDir,
+		promptPath,
+		enqueuePayload,
+		configDir,
+		rule.plugins,
+	);
+
+	log.info`Queued job ${jobId} for merge_request MR !${enqueuePayload.mrIid}`;
 
 	return c.json(
 		{
@@ -177,6 +242,21 @@ function matchIssueRule(
 		if (rule.label && addedLabels.includes(rule.label)) {
 			return rule;
 		}
+	}
+
+	return null;
+}
+
+function matchMergeRequestRule(
+	payload: MergeRequestEvent,
+	config: AgentConfig,
+): WebhookRule | null {
+	const action = payload.object_attributes.action;
+
+	for (const rule of config.rules) {
+		if (rule.event !== "merge_request") continue;
+		if (rule.action && rule.action !== action) continue;
+		return rule;
 	}
 
 	return null;
